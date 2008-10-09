@@ -1,0 +1,203 @@
+/*************************************************************************
+ *
+ *
+ * Product        :  fcMerge                                    
+ *                                                                          
+ * Name           :  merge.dat
+ *                                                                           
+ * Description    :  This configuration file provides Clarify database
+ *                   config_itm's necessary for the fcMerge product.
+ *
+ *                   Use the Clarify 'dataex' tool to load this file.
+ *
+ * Author         :  First Choice Software, Inc.                             
+ *                   8900 Business Park Drive
+ *                   Austin, TX  78759                                       
+ *                   (512) 418-2905                                          
+ *                                                                           
+ * Platforms      :  This version supports Clarify 4.5 and later             
+ *                                                                           
+ * Copyright (C)  1997 First Choice Software, Inc.                           
+ * All Rights Reserved                                                       
+ *************************************************************************/
+
+ /*
+ * Log directory for Windows clients
+ *
+ * Usage          :  Change the 'str_value' field to a common directory
+ *                   into which all merge operations will be logged for
+ *                   all users. Should an empty string be specified, log files
+ *                   will be written the working directory of the tool
+ *                   being used to perform the merge (merge.sh or clarify).
+ *
+ * Examples       :  On Windows, assume on host PABLO you've shared directory 
+ *                   "c:\working\merge\logs" as "\\pablo\mergelog". Specify
+ *                   "\\\\pablo\mergelog" for str_value. Set value_type=0.
+ *
+ *                   Note: Dataex considers "\\" an escape sequence, so you
+ *                   must specify "\\\\" to represent "\\".
+ *
+ *                   On UNIX, assume on all clients that a common file
+ *                   system "/nfs/pablo/mergelog" has been mounted. Specify
+ *                   "/nfs/pablo/mergelog" for str_value. Set value_type=1.
+ * 
+ *                   Should you be in an environment with both Windows and
+ *                   UNIX clients, you may specify two config_itm's.
+ * 
+ *                   In both cases, assume that user 'mary' has run the
+ *                   merge using the 'merge.sh' tool, and 'jane' has run
+ *                   the merge via the Clarify GUI. Log files similar to 
+ *                   the following would be created:
+ *   
+ *                     merge.19971101090923.jane.log
+ *                     merge.19971102141314.mary.log
+ *                     merge.19971102144502.mary.log
+ *
+ *                   The naming scheme is merge.YYYYMMDDhhmmss.<user>.log.
+ */
+
+OBJECT  TYPE="config_itm", NAME="config_itm dir win"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Log Directory";                      /* do not change */
+   value_type=0;                                        /* 0=Windows client */
+   str_value="\\\\hostname\\sharename";                 /* set to common directory */
+   scope=0;                                             /* do not change */
+   description="Specifies common directory into which merge operation log files will be placed. This directory should be writable by those who will be performing merge operations. On NT, can be of the form \\host\sharename.";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm dir win"
+
+/*
+ * Log directory for UNIX clients
+ */
+OBJECT  TYPE="config_itm", NAME="config_itm dir unix"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Log Directory";                      /* do not change */
+   value_type=1;                                        /* 1=UNIX client */
+   str_value="/nfs/host/sharedir";                      /* set to common directory */
+   scope=0;                                             /* do not change */
+   description="Specifies common directory into which merge operation log files will be placed. This directory should be writable by those who will be performing merge operations. On NT, can be of the form \\host\sharename.";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm dir unix"
+
+/*
+ * Report viewer for Windows clients
+ */
+OBJECT  TYPE="config_itm", NAME="config_itm view win"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Report Viewer";                      /* do not change */
+   value_type=0;                                        /* 0=Windows client */
+   str_value="notepad %s";                              /* %s substituted with report file */
+   scope=0;                                             /* do not change */
+   description="Specifies report viewer application.";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm view win"
+
+/*
+ * Report viewer for UNIX clients
+ */
+OBJECT  TYPE="config_itm", NAME="config_itm view unix"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Report Viewer";                      /* do not change */
+   value_type=1;                                        /* 1=UNIX client */
+   str_value="xterm -c vi %s";                          /* %s substituted with report file */
+   scope=0;                                             /* do not change */
+   description="Specifies report viewer application.";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm view unix"
+
+/*
+ * Move site for cases when doing contact merge
+ */
+OBJECT  TYPE="config_itm", NAME="config_itm_merge_site_too"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Move Site Too";                      /* do not change */
+   i_value=1;                                           /* Assume we do  */
+   description="When we contact merge, and change case contact, should we change to contact's primary site?";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm_merge_site_too"
+
+OBJECT  TYPE="config_itm", NAME="config_itm_merge_add_act_entry"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Add Activity";                       /* do not change */
+   i_value=1;                                           /* Assume we do  */
+   description="When we contact/site merge, should we add new 'Merge activity log?";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm_merge_add_act_entry"
+
+OBJECT  TYPE="config_itm", NAME="config_itm_merge_change_instance_name"
+ UNIQUE_FIELD = name, value_type
+  FIELDS
+   name ="FC Merge Change Instance";                    /* do not change */
+   i_value=1;                                           /* Assume we do  */
+   description="When we part_num merge, should we change the instance name on site_parts";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="config_itm_merge_change_instance_name"
+
+                                        /* New activity entries.           */
+REFERENCE TYPE = "gbst_lst", NAME = "Activity List"
+ UNIQUE_FIELD = title 
+  FIELDS
+   title = "Activity Name";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_REFERENCE NAME= "Activity List"
+
+OBJECT TYPE = "gbst_elm", NAME = "Contact merge"
+ UNIQUE_FIELD = title, rank 
+ UNIQUE_RELATION = gbst_elm2gbst_lst
+  FIELDS
+   title = "Merge Contact";
+   rank = 90361;
+   description = "Custom activity name entry. For contact merge.";
+  END_FIELDS
+  RELATIONS
+   TO_NAME = "Activity List" REL = gbst_elm2gbst_lst;
+  END_RELATIONS
+END_OBJECT NAME = "Contact merge"
+
+OBJECT TYPE = "gbst_elm", NAME = "Site merge"
+ UNIQUE_FIELD = title, rank 
+ UNIQUE_RELATION = gbst_elm2gbst_lst
+  FIELDS
+   title = "Merge Site";
+   rank = 90362;
+   description = "Custom activity name entry. For site merge.";
+  END_FIELDS
+  RELATIONS
+   TO_NAME = "Activity List" REL = gbst_elm2gbst_lst;
+  END_RELATIONS
+END_OBJECT NAME = "Site merge"
+
+OBJECT TYPE = "gbst_elm", NAME = "Employee merge"
+ UNIQUE_FIELD = title, rank 
+ UNIQUE_RELATION = gbst_elm2gbst_lst
+  FIELDS
+   title = "Merge Employee";
+   rank = 90363;
+   description = "Custom activity name entry. For employee merge.";
+  END_FIELDS
+  RELATIONS
+   TO_NAME = "Activity List" REL = gbst_elm2gbst_lst;
+  END_RELATIONS
+END_OBJECT NAME = "Employee merge"

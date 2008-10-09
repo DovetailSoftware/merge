@@ -1,0 +1,72 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' $Header: /fchoice/product/merge/610.cbs 1     12/12/03 2:44p Marty $
+'                                                                           
+' Product        :  Contact Merge
+'                                                                           
+' Name           :  610.cbs - Select Part form module
+'                                                                           
+' Description    :  Allows a user to display Part Alias form from the 
+'                   Clarify Select Part form.
+'
+'                   Form Event Handlers:              
+'                                                                           
+'                   form_load() - form has been loaded
+'                   cmdAliases_Click() - Aliases button has been selected
+'
+'                   Internal Routines:
+'                   
+'                   none
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive             
+'                   Austin, TX  78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' form_load()
+' * perform default action (required by CB)
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub Form_Load()
+  Me.DoDefault
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliases_Click()
+' * fetch selected rol_contct
+' * fetch rol_contact.objid 
+' * post Contact Alias form
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub cmdAliases_Click()
+  Dim frm As New Form
+  Dim lstPart As List
+  Dim recPart As New Record
+  Dim objidPart As Long
+
+  Set lstPart = FIELD_ARRAY.SelectedList()
+  If lstPart.count > 0 Then
+    Set recPart = lstPart.ItemByIndex(0)
+    objidPart = recPart.GetField("part_num_objid")
+  Else
+    objidPart = 0
+  End If
+
+  frm.Show 1923, cbFrontIfUp
+  frm.Notify 20000, Str$(objidPart)
+  Me.Dodefault
+End Sub

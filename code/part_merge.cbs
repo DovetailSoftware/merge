@@ -1,0 +1,523 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  Contact/Site Merge
+'                                                                           
+' Name           :  part_merge.cbs                                           
+'                                                                           
+' Description    :  Performs 'merge' process. Callable by GUI or cbbatch.       
+'                                                                           
+' Author         : First Choice Software, Inc.                             
+'                  8900 Business Park Drive
+'                  Austin, TX 78759                                       
+'                  (512) 418-2905                                          
+'                                                                           
+' Platforms      : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  2003 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Type stMetrics
+  bMerge as Boolean
+  iSchemaRev as Integer
+  bVerbose as Boolean
+  iAlias as Long
+  iAlert as Long
+  iCommitLog as Long
+  iWebUser as Long
+  iPhoneLog as Long
+  iCtrSitRole as Long
+  iDemandHdr as Long
+  iCase as Long
+  iContactRole as Long
+  iBusOrgRole as Long
+  iContractRole as Long
+  iAltContact as Long
+  iUser as Long
+  iContract as Long
+  iSitePart as Long
+  iPrimaryContract as Long
+  iActEntry as Long
+  iEmailLog as Long
+  iCampaign as Long
+  iPrimaryTask as Long
+  iQuickQuote as Long
+  iOpportunityRole as Long
+  iMailListRole as Long
+  iPartVend As Long
+  iPhone As Long
+  iEAddr As Long
+  iCaseReseller As Long
+  iAttach As Long
+  iInvRole As Long
+  iShipPart As Long
+  iParentSite As Long
+  iPerRole As Long
+  iContItemRole As Long
+  iTrans As Long
+  iProdBin As Long
+  iSitePartRole As Long
+  iTopProdBin As Long
+  iAddrRole As Long
+  iBillDemandHdr As Long
+  iSuppOff As Long
+  iEmployee As Long
+  iBusOrg As Long
+  iContrInst As Long
+  iTopSitePart As Long
+  iInvLocatn As Long
+  iBillItem As Long
+  iAtItem As Long
+  iByItem As Long
+  iCSCRole As Long
+  iShipItem As Long
+  iPartnerExchange As Long
+  iACDCall As Long
+  iSiteScript As Long
+  iContScript As Long
+  iInteract As Long
+  iLscRole As Long
+  iExcRole As Long
+  iExcSiteRole As Long
+  iSitePartNum As Long
+  iSiteVendorPart As Long
+  iContAttach As Long
+  iShpSitRole As Long
+  iCeAddr As Long
+  irRqst As Long
+  irRqst2 As Long
+  iConPymRole As Long
+  iParentConRole As Long
+  iChildConRole As Long
+  iContPref As Long
+  iContUserTouch As Long
+  iParticipant as Long
+  iSiteAddrRole As Long
+  iBillSite As Long
+  iPrimSite As Long
+  iShipSite As Long
+  iPerAddrRole As Long
+  iAddrShipSched As Long
+  iAddrBillSched As Long
+  iAddrItm As Long
+  iAddrCase As Long
+  iAddrBusPrim As Long
+  iAddrBusAddr As Long
+  iAddrExtn As Long
+  iAddrBaRole As Long
+  iPartRev As Long
+  iPrimaryBusOrg As Long
+  iSiteOrderAction As Long
+  iSiteOrderShipping As Long
+  iSiteBARole As Long
+  iPrimaryBlgArg As Long
+  iConFinAccnt As Long
+  iConBlgArg As Long
+  iConSPRole As Long
+  iConPCRole As Long
+  iConPPBRole As Long
+  iConOrderAction As Long
+  iConFRAgrRole As Long
+  iConInteraction As Long
+  iConProcInst As Long
+End Type
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module variables
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Dim strMasterPart As String
+Dim bChangeInst   As Boolean
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Declare Sub PartMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+Declare Sub MergeLog(strLog As String)
+Declare Sub ObjectReassign(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+Declare Sub ObjectReassignAlert(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' PartFooterPrint() - Print report footer
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub PartFooterPrint(sMetrics As stMetrics)
+  Dim strMsg As String
+
+  MergeLog "------------------------------------------------------"
+  MergeLog "Metrics:"
+  MergeLog ""
+
+  strMsg = Iif(sMetrics.bMerge, " have been processed.", " to be processed.")
+  MergeLog Trim$(str$(sMetrics.iPartRev)) + " part revisions" + strMsg
+  
+  MergeLog "------------------------------------------------------"   
+  MergeLog "END " + Trim$(App.CurrentDate)
+  MergeLog "------------------------------------------------------"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ObjectReassignNoTotal() - Generic routine to reassign a relation with no totalling
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub ObjectReassignNoTotal(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String)
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim j         As Long
+  Dim strVerb   As String
+
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, strRel)
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog "...... " + Trim$(Str$(lstObject.Count)) + " " + strActionDesc + " to be processed."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = "........ " & Iif(sMetrics.bMerge, strVerbMerge, strVerbPreview)
+    MergeLog strVerb + " " + strActionDesc + " " + Trim$(Str$(recObject.GetField("objid")))
+    If sMetrics.bMerge Then
+      bulkSav.RelateRecords recMaster, recObject, strRel
+      If strRel = "part_info2site_part" Then
+      	 bulkSav.UpdateRecord recObject
+      	 If bChangeInst Then
+      	    recObject.SetField "instance_name", strMasterPart & " " & recMaster.GetField("mod_level")
+      	 End If
+      End If
+    End If
+  Next j                                       
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ObjectReassignmtm() - Generic routine to reassign a contact or site for MTMs
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub ObjectReassignMtmNoTotal(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                      recMaster As Record, recAlias As Record, strRel As String, _
+                      strActionDesc As String, strVerbMerge As String, strVerbPreview As String)
+
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim j         As Long
+  Dim strVerb   As String
+
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, strRel)
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog "...... " + Trim$(Str$(lstObject.Count)) + " " + strActionDesc + " to be processed."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = "........ " & Iif(sMetrics.bMerge, strVerbMerge, strVerbPreview)
+    MergeLog strVerb + " " + strActionDesc + " " + Trim$(Str$(recObject.GetField("objid")))
+    If sMetrics.bMerge Then
+      bulkSav.RelateRecords recMaster, recObject, strRel
+      bulkSav.UnRelateRecords recAlias, recobject, strRel
+    End If
+  Next j                                       
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' mergePartRev() - Run merge report or perform merge on a part revision
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub mergePartRev(recMaster As Record, recAlias As Record, sMetrics As stMetrics, bulkSav As BulkSave)
+  Dim bulkRet   As New BulkRetrieve
+
+  bulkRet.SimpleQuery 0, "mod_level"
+  bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
+  bulkRet.SimpleQuery 1, "mod_level"
+  bulkRet.AppendFilter 1, "objid", cbEqual, recMaster.GetField("objid")
+  
+  bulkRet.TraverseFromParent  2, "part_info2backorder", 0         'OTM
+  bulkRet.TraverseFromParent  3, "part_info2bug", 0               'OTM
+  bulkRet.TraverseFromParent  4, "case_cat_part2case", 0          'OTM
+  bulkRet.TraverseFromParent  5, "de_cat_part2case", 0            'OTM
+  bulkRet.TraverseFromParent  6, "part_info2catalog", 0           'MTM
+  bulkRet.TraverseFromParent  7, "part_info2contr_itm", 0         'OTM
+  bulkRet.TraverseFromParent  8, "orig_part2demand_dtl", 0        'OTM
+  bulkRet.TraverseFromParent  9, "part_info2demand_dtl", 0        'OTM
+  bulkRet.TraverseFromParent  10, "part_info2eco_dtl", 0          'OTM
+  bulkRet.TraverseFromParent  11, "applies2eco_mod_role", 0       'OTM
+  bulkRet.TraverseFromParent  12, "result2eco_mod_role", 0        'OTM
+  bulkRet.TraverseFromParent  13, "service2entitlement", 0        'OTOF
+  bulkRet.TraverseFromParent  14, "part_num_incl2part_num", 0     'MTM
+  bulkRet.TraverseFromParent  15, "incl_part_num2part_num", 0     'MTM
+  bulkRet.TraverseFromParent  16, "n_part_info2part_auth", 0      'OTM
+  bulkRet.TraverseFromParent  17, "n_part_info2part_inst", 0      'OTM
+  bulkRet.TraverseFromParent  18, "part_incl2part_qty", 0         'OTM
+  bulkRet.TraverseFromParent  19, "for_mod2part_role", 0          'OTM
+  bulkRet.TraverseFromParent  20, "inst_part_info2part_used", 0   'OTM
+  bulkRet.TraverseFromParent  21, "rem_part_info2part_used", 0    'OTM
+  bulkRet.TraverseFromParent  22, "priced_part2price_qty", 0      'OTM
+  bulkRet.TraverseFromParent  23, "context_part2price_qty", 0     'OTM
+  bulkRet.TraverseFromParent  24, "part_info2price_role", 0       'OTM
+  bulkRet.TraverseFromParent  25, "part_info2prog_logic", 0       'OTM
+  bulkRet.TraverseFromParent  26, "part2qq_line_item", 0          'OTM
+  bulkRet.TraverseFromParent  27, "part_info2recv_parts", 0       'OTM
+  bulkRet.TraverseFromParent  28, "part_info2recv_prob", 0        'OTM
+  bulkRet.TraverseFromParent  29, "part_info2site_part", 0        'OTM
+  bulkRet.TraverseFromParent  30, "part_info2vendor_part", 0      'OTM
+  
+  If sMetrics.iSchemaRev >= 45 Then
+     '
+     ' Clarify schema 45+ (Clfy 6+)
+     '
+     bulkRet.TraverseFromParent  31, "part_info2interact", 0      'OTM
+     bulkRet.TraverseFromParent  32, "mod_level2mtl_log", 0       'OTM
+  End If
+  
+  If sMetrics.iSchemaRev >= 51 Then
+     '
+     ' Clarify schema 51+ (Clfy 7+)
+     '
+     bulkRet.TraverseFromParent  33, "part_attach2doc_inst", 0    'OTM
+     bulkRet.TraverseFromParent  34, "part_info2lit_req_itm", 0   'OTM
+     bulkRet.TraverseFromParent  35, "part_info2rpr_inst_qty", 0     'OTM
+  End If
+  
+  If sMetrics.iSchemaRev >= 56 Then
+     '
+     ' Clarify schema 56+ (Clfy 11+)
+     '
+     bulkRet.TraverseFromParent  36, "mod_level2bus_opp_role", 0  'MTM
+     bulkRet.TraverseFromParent  37, "mod_level2lead", 0          'MTM
+  End If  
+  
+  If sMetrics.iSchemaRev >= 59 Then
+     '
+     ' Clarify schema 59+ (Clfy 12+)
+     '
+     bulkRet.TraverseFromParent  38, "mod_level2flex_tmpl", 0     'MTM
+     bulkRet.TraverseFromParent  39, "mod_level2offering", 0      'OTM
+     bulkRet.TraverseFromParent  40, "mod_level2part_action", 0   'MTM
+     bulkRet.TraverseFromParent  41, "mod_level2proc_inst", 0     'MTM
+     bulkRet.TraverseFromParent  42, "mod_level2process", 0       'MTM
+  End If  
+  bulkRet.RetrieveRecords
+       
+  '
+  ' New bulk save for each part_num alias
+  '
+  Set bulkSav = New BulkSave
+
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2backorder", "backorder", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2bug", "bug", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "case_cat_part2case", "case", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "de_cat_part2case", "de case", "Reassigning", "To reassign"
+  ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2catalog", "catalog entry", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2contr_itm", "contract line item", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "orig_part2demand_dtl", "original part request detail", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2demand_dtl", "current part request detail", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2eco_dtl", "ECO detail", "Reassigning", "To reassign"
+  ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "applies2eco_mod_role", "ECO applies role", "Reassigning", "To reassign"
+  ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "result2eco_mod_role", "ECO result role", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "service2entitlement", "entitlement", "Reassigning", "To reassign"
+  ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_num_incl2part_num", "parent mod_level", "Reassigning", "To reassign"
+  ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "incl_part_num2part_num", "child mod_level", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "n_part_info2part_auth", "part authorization", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "n_part_info2part_inst", "part instance", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_incl2part_qty", "included part in BOM", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "for_mod2part_role", "part role", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "inst_part_info2part_used", "part used installed", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "rem_part_info2part_used", "part used removed", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "priced_part2price_qty", "priced part", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "context_part2price_qty", "context priced part", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2price_role", "price role", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2prog_logic", "programmed logic", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part2qq_line_item", "quick quote line item", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2recv_parts", "received part", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2recv_prob", "received problem", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2site_part", "site part", "Reassigning", "To reassign"
+  ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2vendor_part", "vendor part", "Reassigning", "To reassign"
+
+
+  If sMetrics.iSchemaRev >= 45 Then
+     '
+     ' Clarify schema 45+ (Clfy 6+)
+     '
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2interact", "interaction", "Reassigning", "To reassign"
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2mtl_log", "material log", "Reassigning", "To reassign"
+  End If
+
+
+  If sMetrics.iSchemaRev >= 51 Then
+     '
+     ' Clarify schema 51+ (Clfy 7+)
+     '
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_attach2doc_inst", "attachment", "Reassigning", "To reassign"
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2lit_req_itm", "literature request item", "Reassigning", "To reassign"
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "part_info2rpr_inst_qty", "repair BOM", "Reassigning", "To reassign"
+  End If
+
+  If sMetrics.iSchemaRev >= 56 Then
+     '
+     ' Clarify schema 56+ (Clfy 11+)
+     '
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2bus_opp_role", "bus opp role", "Reassigning", "To reassign"
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2lead", "lead", "Reassigning", "To reassign"
+  End If
+
+  If sMetrics.iSchemaRev >= 59 Then
+     '
+     ' Clarify schema 59+ (Clfy 12+)
+     '
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2flex_tmpl", "flex template", "Reassigning", "To reassign"
+     ObjectReassignNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2offering", "offering", "Reassigning", "To reassign"
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2part_action", "part action", "Reassigning", "To reassign"
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2proc_inst", "process instance", "Reassigning", "To reassign"
+     ObjectReassignMtmNoTotal sMetrics, bulkRet, bulkSav, recMaster, recAlias, "mod_level2process", "process", "Reassigning", "To reassign"
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' PartMergeAlias() - Run merge report or perform merge
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub PartMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+  Dim bulkRet   As New BulkRetrieve
+  Dim bulkSav   As BulkSave
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim lstOther  As List
+  Dim recOther  As Record
+  Dim strVerb   As String
+  Dim t_list    As List
+  Dim gbst_rec  As Record
+  Dim do_act    As Boolean
+  Dim n_act_rec As Record
+  Dim conf_rec  As Record
+ 
+  Dim i         As Long
+  Dim j         As Long    
+  
+  Dim recActEntry As New Record
+  Dim lstActCode  As List
+  Dim recActCode  As Record
+
+  Dim role_ret    As New BulkRetrieve
+  Dim role_list   As List
+  Dim role_rec    As Record
+  Dim master_role_rec As Record
+  
+  Dim aliasRevList As List
+  Dim masterRevList As List
+  Dim recRev       As Record
+  Dim recMastRev   As Record
+  
+  strMasterPart = recMaster.GetField("part_number")
+  
+  bulkRet.SimpleQuery 0, "part_num"
+  bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
+  bulkRet.SimpleQuery 1, "part_num"
+  bulkRet.AppendFilter 1, "objid", cbEqual, recMaster.GetField("objid")
+
+  bulkRet.TraverseFromParent  2, "part_num2mod_level", 0         'OTM
+  bulkRet.TraverseFromParent  3, "part_num2mod_level", 1         'OTM
+  bulkRet.SimpleQuery 4, "config_itm"
+  bulkRet.AppendFilter 4, "name", cbEqual, "FC Merge Change Instance"
+  bulkRet.RetrieveRecords
+
+         ' Get the configuration item for changing the instance name (for site_parts)
+         '  If not found, assume True
+         '  Otherwise, set to value in record
+  Set t_list = bulkRet.GetRecordList(4)
+  If t_list.Count = 0 Then
+     bChangeInst = True
+  Else
+     Set conf_rec = t_list.ItemByIndex(0)
+     bChangeInst = (conf_rec.GetField("i_value") = 1)
+  End If
+  'MsgBox "Change instance: " & CStr(bChangeInst)
+
+  '
+  ' New bulk save for each part_num alias
+  '
+  Set bulkSav = New BulkSave
+  
+  '
+  ' Process alias
+  '
+  MergeLog ""
+  MergeLog "Part number alias " + Trim$(Str$(recAlias.GetField("objid"))) + " " + _
+                 "(" + recAlias.GetField("part_number") + " - " + _
+                 recAlias.GetField("domain") + ")"
+
+  '
+  ' Log master for this alias
+  '               
+  MergeLog ".. Master part number " + Trim$(Str$(recMaster.getField("objid"))) + " " + _
+                 "(" + recMaster.GetField("part_number") + " - " + _
+                 recMaster.GetField("domain") & ")"
+  If sMetrics.bMerge Then
+    bulksav.UpdateRecord recMaster
+    bulksav.UnRelateRecords recAlias, recMaster, "alias2part_num"
+    recMaster.SetField "x_objid_master", 0
+  End If
+
+  Set aliasRevList = bulkRet.GetRelatedRecordList(recAlias, "part_num2mod_level")
+  Set masterRevList = bulkRet.GetRelatedRecordList(recMaster, "part_num2mod_level")
+  MergeLog ".. " + Trim$(Str$(aliasRevList.Count)) + " part revisions to be merged/moved."
+
+  For i = 0 To aliasRevList.Count - 1
+    Set recRev = aliasRevList.ItemByIndex(i)
+    j = masterRevList.FindFirstIndex(recRev.GetField("mod_level"), "mod_level")
+    If j < 0 Then
+       strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+       MergeLog strVerb + " part revision " + Trim$(Str$(recRev.GetField("objid"))) & " (" & recRev.GetField("mod_level") & ")"
+       If sMetrics.bMerge Then
+          bulkSav.RelateRecords recMaster, recAlias, "part_num2mod_level"
+       End If
+    Else
+       strVerb = Iif(sMetrics.bMerge, ".... Merging", ".... To merge")
+       MergeLog strVerb + " part revision " + Trim$(Str$(recRev.GetField("objid"))) & " (" & recRev.GetField("mod_level") & ")"
+       Set recMastRev = masterRevList.ItemByIndex(j)
+       mergePartRev recMastRev, recRev, sMetrics, bulkSav
+       bulkSav.DeleteRecord recRev
+    End If
+    
+    sMetrics.iPartRev = sMetrics.iPartRev + 1
+  Next i
+
+  '
+  ' Delete alias part_num
+  '
+  If sMetrics.bMerge Then
+    bulkSav.DeleteRecord recAlias
+  End If
+  sMetrics.iAlias = sMetrics.iAlias + 1
+
+  If sMetrics.bMerge Then
+    MergeLog ".. Commiting changes."
+    bulkSav.Save
+    MergeLog ".. Done."
+  End If  
+End Sub

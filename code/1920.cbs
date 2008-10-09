@@ -1,0 +1,1325 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' $Header: /fchoice/product/merge/1920.cbs 19    2/25/03 4:06p Marty $
+'
+' Product        :  Contact/Site Merge
+'
+' Name           :  1920.cbs
+'
+' Description    :  Allows a user to marks contacts as 'master' contacts having
+'                   one or more alias (or duplicate) contacts. Contacts marked as
+'                   such will be later processed using the merge.sh tool.
+'
+'                   Form Event Handlers:
+'
+'                   form_load() - form has been loaded
+'                   message() - message handler
+'
+'                   clMasterList_Click() - Master contact has been selected
+'                   cmdMasterShow() - Show master contact has been clicked
+'                   cmdMasterDelete() - Unmark master contact has been clicked
+'
+'                   clAliasList_Click() - Alias contact has been selected
+'                   cmdAliasShow() - Show alias contact has been clicked
+'                   cmdAliasDelete() - Unmark alias contact has been clicked
+'
+'                   clCandidateList_Click() - Candidate contact has been  selected
+'                   cmdCandidateList_Click() - Refresh candidate list has been clicked
+'                   cmdCandidateShow_Click() - Show candidate contact has been clicked
+'                   cmdMasterAdd_Click() - Mark candidate as Master has been clicked
+'                   cmdAliasAdd_Click() - Mark candidate as Alias has been clicked
+'                   cmdSave_Click() - Save master/alias configuration
+'                   DONE_Click() - Dismiss master/alias form
+'
+'                   Internal Routines:
+'
+'                   LoadAll() - Initialize form with current master/alias configuration
+'                   LoadAliasList() - Load aliases into alias list for a given master
+'                   LoadMasterList() - Load masters into master list
+'                   LoadCandidateList() - Load candidates into candidate list
+'
+'                   DeleteMaster() - Unmark specified master and associated aliases
+'                   DeleteAlias() - Unmark specified alias
+'                   DeleteMasterAlias() - Remove master/alias from master/alias list
+'
+'                   UpdateRecord() - Update a record in bulkSave
+'                   RelateRecords() - Relate two records in bulkSave
+'                   UnRelateRecords() - UnRelate two records in bulkSave
+'
+'                   SetGuiState() - Enable/Disable form controls
+'                   ShowContact() - Show contact form
+'                   FindFirstIndex() - Find record in list by field name/value
+'
+'
+' Author          : First Choice Software, Inc.
+'                   4412 Spicewood Springs Road, Suite 701
+'                   Austin, TX 78759
+'                   (512) 418-2905
+'
+' Platforms       : This version supports Clarify 4.5 and later
+'
+' Copyright (C)  1997, 1998 First Choice Software, Inc.
+' All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+option explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+declare sub LoadAll(objidContact as Long)
+declare sub LoadCandidateList(objidContact as Long)
+declare sub LoadMasterList(objidMaster as Long, objidAlias as Long)
+declare sub LoadAliasList(objidMaster as Long, objidAlias as Long)
+
+declare sub MergeMaster(bMerge as Boolean)
+declare sub MergeAll(bMerge as Boolean)
+declare sub Merge(objidMaster as Long, bMerge as Boolean)
+
+declare sub ShowContact(cl as Control)
+declare sub DeleteMaster(recMaster as Record, bDelMasterAlias as Boolean)
+declare sub DeleteAlias(recMaster as Record, recAlias as Record)
+declare sub DeleteMasterAlias(objid as Long)
+declare sub UpdateRecord (rec as Record)
+declare sub RelateRecords (rec as Record, rec2 as Record, strRel as String)
+declare sub UnRelateRecords (rec as Record, rec2 as Record, strRel as String)
+declare sub SetGuiState(strState as String)
+declare function FindFirstIndex(lst as List, value as Variant, strField as String) as Long
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' External forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'
+' merge.cbs
+'
+declare sub ContactMergeGUI(objidMaster as Long, bMerge as Boolean, strLogFile as String)
+declare function MergeConfigItem(strItem as String) as String
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module globals
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+dim gBulkSav as BulkSave
+dim gbPrivMerge as Boolean
+dim gbPrivMergeAll as Boolean
+dim gbPrivPreview as Boolean
+dim gbPrivPreviewAll as Boolean
+dim gbPrivSave as Boolean
+Dim gbPrivSwap as Boolean
+Dim gUpdate    As Record
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' form_load()
+' * initialize contextual objects
+' * set inital gui state
+' * allocate initial bulkSave
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub form_load()
+  dim bulkRet as new BulkRetrieve
+  dim lstControl as List
+  dim recControl as Record
+  dim i as Integer
+
+  dim lstMaster as new List
+  dim lstAlias as new List
+  dim lstCandidate as new List
+  dim lstMasterAlias as new List
+  dim recFilter as new Record
+
+  me.doDefault
+
+  set lstMaster.itemType = "Record"
+  set lstAlias.itemType = "Record"
+  set lstCandidate.itemType = "Record"
+  set lstMasterAlias.itemType = "Record"
+  set recFilter.recordType = "rol_contct"
+
+  cobj_MasterList.fill lstMaster
+  cobj_AliasList.fill lstAlias
+  cobj_CandidateList.fill lstCandidate
+  cobj_MasterAliasList.fill lstMasterAlias
+  cobj_CandidateFilter.fill recFilter
+
+  '
+  ' Check priv class. The buttons honored for priv class are:
+  ' * cmdMerge, cmdMergeAll, cmdPreview, cmdPreviewAll, cmdSave
+  '
+  ' Note: this check does not take into account
+  ' the user's resource config. Should there have multiple versions
+  ' of 1920, and the admin disables 'cmdMerge' for one user version,
+  ' but not another, 'cmdMerge' will be disabled regardless of the
+  ' 1920 user version specified in the user's resource config. This
+  ' should not be an issue for normal product usage.
+  '
+  gbPrivMerge = True
+  gbPrivMergeAll = True
+  gbPrivPreview = True
+  gbPrivPreviewAll = True
+  gbPrivSave = True
+  gbPrivSwap = True
+  bulkRet.simpleQuery 0, "user"
+  bulkRet.appendFilter 0, "objid", cbEqual, app.userObjid
+  bulkRet.traverseFromParent 1, "user_access2privclass", 0
+  bulkRet.traverseFromParent 2, "privclass2control_db", 1
+  bulkRet.appendFilter 2, "win_id", cbEqual, 1920
+  bulkRet.retrieveRecords
+
+  set lstControl = bulkRet.getRecordList(2)
+  for i = 0 to lstControl.count - 1
+    set recControl = lstControl.itemByIndex(i)
+    select case recControl.getField("name")
+      case "cmdMerge"
+        gbPrivMerge = False
+      case "cmdMergeAll"
+        gbPrivMergeAll = False
+      case "cmdPreview"
+        gbPrivPreview = False
+      case "cmdPreviewAll"
+        gbPrivPreviewAll = False
+      case "cmdSave"
+        gbPrivSave = False
+      case "cmdSwap"
+        gbPrivSwap = False
+    end select
+  next i
+
+  SetGuiState "init"
+
+  set gBulkSav = new BulkSave
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' message()
+' * 20000 - load form with current master/alias configuration
+' * cbCloseMessage - close form
+' * else - do default
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub message(ulMsg as Long, strInfo as String)
+  select case ulMsg
+    case 20000
+      '
+      ' strValue = "<contact objid>|<active/inactive flag>"
+      '
+      INCLUDE_INACT_CHK.value = cbool(item$(strInfo, 2, 2, "|"))
+      LoadAll val(item$(strInfo, 1, 1, "|"))
+
+    case cbCloseMessage
+      me.close
+      me.doDefault
+
+    case else
+      me.doDefault
+  end select
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clMasterList_Click()
+' * load alias list for selected master
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub clMasterList_Click()
+  dim recMaster as Record
+
+  set recMaster = clMasterList.selected
+  LoadAliasList recMaster.getField("objid"), 0
+  SetGuiState "master selected"
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMasterShow_Click()
+' clMasterList_DblClick()
+' * show contact form for selected master
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdMasterShow_Click()
+  ShowContact clMasterList
+end sub
+
+sub clMasterList_DblClick()
+  ShowContact clMasterList
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMasterDelete_Click()
+' * post confirmation
+' * unmark aliases for selected master
+' * unmark master
+' * select new master and load alias list
+' * update gui state
+' * update candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdMasterDelete_Click()
+  dim lstAlias as List
+  dim recMaster as Record
+  dim recAlias as Record
+  dim rc as Long
+  dim objidMaster as Long
+
+  '
+  ' Fetch current master and list of aliases for this master
+  '
+  set recMaster = clMasterList.selected
+  set lstAlias = cobj_AliasList.contents
+
+  if lstAlias.Count > 0 then
+    rc = app.msgbox("Unmarking this Master contact will also unmark " + _
+                    "its associated Alias (duplicate) contacts. Continue?", cbYesNoCancel, _
+                    "Unmark Master Contact")
+    if rc <> ebYes then
+      exit sub
+    end if
+
+    SetGuiState "savable"
+  end if
+
+  '
+  ' Loop over aliases, removing from list and unmarking as aliases
+  '
+  do while lstAlias.count > 0
+    clAliasList.setSelected 0
+    set recAlias = clAliasList.selected
+    DeleteAlias recMaster, recAlias
+    clAliasList.removeSelected
+  loop
+
+  '
+  ' Unmark as master, and remove from MasterAlias list
+  '
+  DeleteMaster recMaster, True
+  objidMaster = recMaster.getField("objid")
+
+  '
+  ' Refresh gui
+  '
+  if (clMasterList.removeSelected) = 0 then
+    SetGuiState "master deselected"
+    SetGuiState "alias deselected"
+  else
+    set recMaster = clMasterList.selected
+    LoadAliasList recMaster.getField("objid"), 0
+  end if
+
+                   ' Removed 8/2/01 MJS. Don't refilter the candidate list. If you
+                   '  want to (with first/last initials, uncomment the next line.
+'  LoadCandidateList objidMaster
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMerge_Click()
+' cmdPreview_Click()
+' cmdMergeAll_Click()
+' cmdPreviewAll_Click()
+' MergeMaster()
+' MergeAll()
+' Merge()
+'
+' * invoke merge for selected master
+' * refresh candidate, master and alias lists
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdMerge_Click()
+  MergeMaster True
+end sub
+
+sub cmdPreview_Click()
+  MergeMaster False
+end sub
+
+sub cmdMergeAll_Click()
+  MergeAll True
+end sub
+
+sub cmdPreviewAll_Click()
+  MergeAll False
+end sub
+
+sub MergeMaster(bMerge as Boolean)
+  dim recMaster as Record
+  dim objidMaster as Long
+
+  '
+  ' Fetch selected master
+  '
+  set recMaster = clMasterList.selected
+  objidMaster = recMaster.getField("objid")
+
+  Merge objidMaster, bMerge
+end sub
+
+sub MergeAll(bMerge as Boolean)
+  Merge 0, bMerge
+end sub
+
+sub Merge(objidMaster as Long, bMerge as Boolean)
+  dim strLogFile as String
+  dim rc as Variant
+
+  if bMerge then
+    rc = app.msgbox("There is no undo for this operation. Proceed?", cbYesNo, "Contact Merge")
+    if rc = ebNo then
+      exit sub
+    end if
+    txtStatus.text = "Merge in progress..."
+  else
+    txtStatus.text = "Preview in progress..."
+  end if
+  txtStatus.refresh
+
+  '
+  ' Perform contact merge on selected master
+  '
+  on error goto err_no_dir
+  ContactMergeGUI objidMaster, bMerge, strLogFile
+  on error goto 0
+
+  if bMerge then
+    '
+    ' Reload candidate, master and alias lists. Remember that the master,
+    ' as the result of the merge, is now a candidate again.
+    '
+    LoadAll objidMaster
+  else
+    dim strRawApp as String
+    dim iRawAppLen as Integer
+    dim strLeft as String
+    dim strRight as String
+    dim strApp as String
+    dim i as Integer
+    dim j as Integer
+
+    on error goto err_no_viewer
+    strRawApp = MergeConfigItem("FC Merge Report Viewer")
+    on error goto 0
+
+    iRawAppLen = len(strRawApp)
+    i = instr(strRawApp, "%s")
+
+    if i = 0 then ' "notepad"
+      strLeft = strRawApp
+      strRight = ""
+    elseif i = 1 then ' "%s notepad"
+      strLeft = ""
+      strRight = right$(strRawApp, iRawAppLen - 2)
+    else ' "notepad %s"
+      strLeft = left$(strRawApp, i - 1)
+      strRight = right$(strRawApp, iif((i + 2) <= iRawAppLen, i + 2, 0))
+    end if
+    strApp = strLeft + strLogFile + strRight
+
+    rc = Shell(strApp, ebNormalFocus)
+  end if
+
+done_process:
+  '
+  ' Update status line
+  '
+  if bMerge then
+    txtStatus.text = "Merge complete. Log file is '" + strLogFile + "'"
+  else
+    txtStatus.text = "Preview complete. Log file is '" + strLogFile + "'"
+  end if
+  exit sub
+
+err_no_viewer:
+  App.msgbox err.description
+  resume done_process
+  exit sub
+
+err_no_dir:
+  app.msgbox err.description
+  txtStatus.text = ""
+  exit sub
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clAliasList_Click()
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub clAliasList_Click()
+  SetGuiState "alias selected"
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliasShow_Click()
+' clAliasList_DblClick()
+' * show contact form for selected alias
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdAliasShow_Click()
+  ShowContact clAliasList
+end sub
+
+sub clAliasList_DblClick()
+  ShowContact clAliasList
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliasDelete_Click()
+' * unmark selected alias
+' * unmark master if last alias unmarked
+' * update gui state
+' * reload candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdAliasDelete_Click()
+  dim lstMasterAlias as List
+  dim recAlias as Record
+  dim recMaster as Record
+  dim i as Long
+
+  set recAlias = clAliasList.selected
+  DeleteAlias clMasterList.selected, recAlias
+
+  if (clAliasList.removeSelected) = 0 then
+    SetGuiState "alias deselected"
+
+    '
+    ' No more aliases for this master. Unmark master in bulkSav, but leave
+    ' as master with no aliases in GUI.
+    '
+    DeleteMaster clMasterList.selected, False
+  end if
+
+  SetGuiState "savable"
+
+                   ' Removed 8/2/01 MJS. Don't refilter the candidate list. If you
+                   '  want to (with first/last initials, uncomment the next line.
+'  LoadCandidateList recAlias.getField("objid")
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clCandidateList_Click()
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub clCandidateList_Click()
+  SetGuiState "candidate selected"
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdCandidateList_Click()
+' * reload candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdCandidateList_Click()
+
+  LoadCandidateList 0
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdCandidateShow_Click()
+' * show contact form for this candidate
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdCandidateShow_Click()
+  dim recRolContct as Record
+
+  set recRolContct = clCandidateList.selected
+  app.ShowContact recRolContct, cbShowContactReadOnly
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMasterAdd_Click()
+' * get contact object for selected candidate rol_contct
+' * remove candidate from candidate list
+' * add candidate to master/alias list
+' * reload master list
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdMasterAdd_Click()
+  dim recRolContct as Record
+  dim recMaster as Record
+  dim lstMasterAlias as List
+  dim i as Integer
+  dim recMasterAlias as Record
+  dim lstCand as List
+  dim recCand as Record
+
+  set recRolContct = clCandidateList.selected
+
+  If recRolContct.GetField("site_typest") = "INDV" Then
+     App.MsgBox "You must merge individual sites before you can merge the individual contact."
+     Exit Sub
+  End If
+
+  recRolContct.GetObject "contact", recMaster
+
+  if (clCandidateList.removeSelected) = 0 then
+    SetGuiState "candidate deselected"
+  end if
+
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  recMaster.setField "x_objid_master", 1
+  lstMasterAlias.appendItem recMaster
+  LoadMasterList recMaster.getField("objid"), 0
+
+  '
+  ' We may have other items in the contact list for the master we just
+  '  removed (other contact roles). Remove them too, since the contact
+  '  is now marked as a master.
+  '
+  set lstCand = cobj_CandidateList.contents
+  for i = lstCand.count - 1 to 0 step - 1
+    set recCand = lstCand.itemByIndex(i)
+    if recCand.getField("con_objid") = recRolContct.getField("con_objid") then
+       lstCand.RemoveByIndex i
+    end if
+  next i
+  cobj_CandidateList.Fill lstCand
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdSwap_Click()
+' * get alias and master record
+' * swap them in the grids
+' * fix them up in the bulksave
+' * reload alias list
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdSwap_Click()
+  Dim recMaster As Record               ' Master record
+  Dim recAlias  As Record               ' Alias record
+  Dim lstAlias  As List                 ' List of aliases
+  Dim iLoop     As Integer              ' Looping integer
+  Dim iLoc      As Integer              ' Location integer
+  Dim recTemp   As Record               ' Temporary record
+  Dim lstMA     As List                 ' List of masters and aliases
+  Dim rectMast  As Record               ' Temp record back from update statement
+  Dim rectAl    As Record               ' Temp record back from update statement
+
+                                        ' Get master, alias, list of aliases
+                                        '  and master/aliases
+  Set recMaster = clMasterList.Selected
+  Set recAlias = clAliasList.Selected
+  Set lstAlias = Cobj_AliasList.Contents
+  Set lstMA    = Cobj_MasterAliasList.Contents
+
+                   ' MJS 9/13/01. Enhancement. Don't allow "no alias" ones to be made aliases
+  If recMaster.GetField("x_no_alias") = 1 Then
+  	 App.MsgBox "The master contact is marked as 'no alias.' You may not make it an alias."
+  	 Exit Sub
+  End If
+
+                                        ' Loop through aliases
+                                        ' Get each one and update it in the
+                                        '  bulksave to point to the alias
+  For iLoop = 0 To lstAlias.Count - 1
+    Set recTemp = lstAlias.ItemByIndex(iLoop)
+
+    recTemp.SetField "x_objid_master", recAlias.GetField("objid")
+    UpdateRecord recTemp
+    UnRelateRecords recTemp, recMaster, "alias2contact"
+    RelateRecords recTemp, recAlias, "alias2contact"
+
+                                        ' Update it in the list of mast/aliases
+                                        '  too. Point each one to the alias
+    iLoc = lstMA.FindFirstIndex(recMaster.GetField("objid"), "x_objid_master")
+    Set recTemp = lstMA.ItemByIndex(iLoc)
+    recTemp.SetField "x_objid_master", recAlias.GetField("objid")
+    lstMA.ReplaceByIndex iLoc, recTemp
+  Next iLoop
+
+                                        ' Update the master to be an alias
+                                        '  in the bulksave
+                                        ' Remember new master record
+  recMaster.SetField "x_objid_master", recAlias.GetField("objid")
+  recMaster.SetField "x_marked_by", App.UserObjid
+  UpdateRecord recMaster
+  Set rectMast = gUpdate
+                                        ' Update the alias to be a master
+                                        '  in the bulksave
+                                        ' Remember new alias record
+                                        ' Clear and set the relations
+  recAlias.SetField "x_objid_master", 1
+  recAlias.SetField "x_marked_by", 0
+  UpdateRecord recAlias
+  Set rectAl = gupdate
+  UnRelateRecords recAlias, recMaster, "alias2contact"
+  RelateRecords rectMast, rectAl, "alias2contact"
+
+                                        ' Now switch the two in the
+                                        '  list of master/aliases
+  iLoc = lstMA.FindFirstIndex(recMaster.GetField("objid"), "objid")
+  Set recTemp = lstMA.ItemByIndex(iLoc)
+  recTemp.SetField "x_objid_master", recAlias.GetField("objid")
+  lstMA.ReplaceByIndex iLoc, recTemp
+
+                                        ' When done, put back in Cobj
+  iLoc = lstMA.FindFirstIndex(recAlias.GetField("objid"), "objid")
+  Set recTemp = lstMA.ItemByIndex(iLoc)
+  recTemp.SetField "x_objid_master", 1
+  lstMA.ReplaceByIndex iLoc, recTemp
+  Cobj_MasterAliasList.Fill lstMA
+
+                                        ' Replace item in master grid
+                                        ' Reload the alias grid
+                                        ' Reload the master grid (8/2/01 MJS)
+                                        '  We reload the grids so we can sort them
+                                        '   because the swap may change the sorting
+                                        ' Set the GUI state
+  iLoop = clMasterList.ListIndex
+  clMasterList.ReplaceItem recAlias, iLoop
+  LoadMasterList recTemp.getField("objid"), 0
+  LoadAliasList recAlias.getField("objid"), 0
+  SetGuiState "savable"
+  cmdsave.value = True
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliasAdd_Click()
+' * get contact object for selected candidate rol_contct
+' * remove candidate from candidate list
+' * add candidate to master/alias list
+' * add master and alias to bulkSave and relate
+' * reload alias list
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdAliasAdd_Click()
+  dim recRolContct as Record
+  dim recMaster as Record
+  dim recAlias as new Record
+  dim lstMasterAlias as List
+  dim i as Integer
+  dim recMasterAlias as Record
+  dim lstCand as List
+  dim recCand as Record
+
+
+  set recRolContct = clCandidateList.selected
+  set recMaster = clMasterList.selected
+
+                   ' MJS 9/13/01. Enhancement. Don't allow "no alias" ones to be made aliases
+  If recRolContct.GetField("x_no_alias") = 1 Then
+  	 App.MsgBox "This contact is marked as 'no alias.' You may not make it an alias."
+  	 Exit Sub
+  End If
+
+  If recRolContct.GetField("site_typest") = "INDV" Then
+     App.MsgBox "You must merge individual sites before you can merge the individual contact."
+     Exit Sub
+  End If
+
+  recRolContct.GetObject "contact", recAlias
+
+  if (clCandidateList.removeSelected) = 0 then
+    SetGuiState "candidate deselected"
+  end if
+
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  recAlias.setField "x_objid_master", recMaster.getField("objid")
+                   ' MJS 2/25/03 - Set the current user as the "marker"
+  recAlias.setField "x_marked_by", App.UserObjid
+  lstMasterAlias.appendItem recAlias
+
+                   ' GMS 12/7/05 - Make sure the master record is 
+                   ' marked as a master
+  recMaster.SetField "x_objid_master", 1
+
+  UpdateRecord recMaster
+  UpdateRecord recAlias
+  RelateRecords recAlias, recMaster, "alias2contact"
+
+  LoadAliasList recMaster.getField("objid"), recAlias.getField("objid")
+
+  SetGuiState "savable"
+
+  '
+  ' We may have other items in the contact list for the master we just
+  '  removed (other contact roles). Remove them too, since the contact
+  '  is now marked as an alias.
+  '
+  set lstCand = cobj_CandidateList.contents
+  for i = lstCand.count - 1 to 0 step - 1
+    set recCand = lstCand.itemByIndex(i)
+    if recCand.getField("con_objid") = recRolContct.getField("con_objid") then
+       lstCand.RemoveByIndex i
+    end if
+  next i
+  cobj_CandidateList.Fill lstCand
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdSave_Click()
+' * save current bulkSave
+' * allocate new bulkSave
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdSave_Click()
+  gBulkSav.save
+  set gBulkSav = new BulkSave
+  SetGuiState "not savable"
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' done_click()
+' * post confirmation dialog
+' * unpost form
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub DONE_Click()
+  dim rc as Long
+
+  if cmdSave.enabled then
+    rc = app.msgbox("Save your changes?", cbSaveDiscardCancel, _
+                      "Contact Alias")
+    if rc = ebCancel then
+      '
+      ' User changed their mind.
+      '
+      exit sub
+    end if
+
+    if rc = 8 then   '8=save
+      '
+      ' Save changes
+      '
+      gBulkSav.save
+    end if
+
+  end if
+
+  '
+  ' Close form
+  '
+  me.close
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadAll()
+' * fetch all non-obsolete contacts which are masters or aliases
+' * load list into master/alias list
+' * load master list
+' * load candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub LoadAll(objidContact as Long)
+  dim lstMasterAlias as new List
+  dim lstContact as List
+  dim recContact as Record
+  dim objidMaster as Long
+  dim objidAlias as Long
+  dim bulkRet as new BulkRetrieve
+
+  set lstMasterAlias.itemType = "Record"
+
+  bulkRet.simpleQuery 0, "contact"
+  bulkRet.appendFilter 0, "status", cbNotEqual, 2  '2=obsolete
+  bulkRet.appendFilter 0, "x_objid_master", cbGreater, 0  '>0 is master or alias
+  if objidContact <> 0 then
+    bulkRet.simpleQuery 1, "contact"
+    bulkRet.appendFilter 1, "objid", cbEqual, objidContact
+  end if
+  bulkRet.retrieveRecords
+  set lstMasterAlias = bulkRet.getRecordList(0)
+  cobj_MasterAliasList.fill lstMasterAlias
+
+  objidMaster = 0
+  objidAlias = 0
+  if objidContact <> 0 then
+    set lstContact = bulkRet.getRecordList(1)
+    set recContact = lstContact.itemByIndex(0)
+    if recContact.getField("x_objid_master") = 1 then
+      objidMaster = objidContact
+      objidAlias = 0
+    elseif recContact.getField("x_objid_master") > 1 then
+      objidMaster = recContact.getField("x_objid_master")
+      objidAlias = objidContact
+    end if
+  end if
+
+  LoadMasterList objidMaster, objidAlias
+  '
+  ' If no contact selected from 711. Do not auto-load candidate list
+  ' because the resulting query can take several minutes.
+  '
+  if objidContact <> 0 then
+    LoadCandidateList objidContact
+  end if
+
+end sub
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadAliasList()
+' objidMaster - load aliases for this master
+' objidAlias - auto-select this alias
+' * locate aliases for specified master in master/alias list
+' * store in alias list
+' * auto-select first or specified alias
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub LoadAliasList(objidMaster as Long, objidAlias as Long)
+  dim lstMasterAlias as List
+  dim lstAlias as new List
+  dim recContact as Record
+  dim i as Long
+  dim idxSelected as Long
+
+  lstAlias.itemType = "Record"
+
+  idxSelected = -1
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  for i = 0 to lstMasterAlias.count - 1
+    set recContact = lstMasterAlias.itemByIndex(i)
+    if recContact.getField("x_objid_master") = objidMaster then
+      lstAlias.appendItem recContact
+      if objidAlias > 0 and idxSelected < 0 and _
+        recContact.getField("objid") = objidAlias then
+        idxSelected = lstAlias.count - 1
+      end if
+    end if
+  next i
+
+                   ' 8/2/01 MJS. Added sorting to the grid for large numbers of items
+  lstAlias.Sort "last_name", 0, "first_name"
+  cobj_AliasList.fill lstAlias
+  me.refresh
+
+  if lstAlias.count > 0 then
+                   ' 8/2/01 MJS. Highlight proper alias row.
+    idxSelected = lstAlias.FindFirstIndex(objidAlias, "objid")
+    if idxSelected < 0 then
+       idxSelected = 0
+    end if
+    clAliasList.SetSelected idxSelected
+    SetGuiState "alias selected"
+  else
+    SetGuiState "alias deselected"
+  end if
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadMasterList()
+' objidMaster - auto-select this master
+' objidAlias - auto-select this alias
+' * locate masters in master/alias list
+' * store in master list
+' * auto-select first or specified master
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub LoadMasterList(objidMaster as Long, objidAlias as Long)
+  dim lstMasterAlias as List
+  dim lstMaster as new List
+  dim lstAlias as new List
+  dim recContact as Record
+  dim idxSelection as Long
+  dim i as Long
+
+  lstMaster.itemType = "Record"
+  idxSelection = -1
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  for i = 0 to lstMasterAlias.count - 1
+    set recContact = lstMasterAlias.itemByIndex(i)
+    if recContact.getField("x_objid_master") = 1 then
+      lstMaster.appendItem recContact
+      if objidMaster > 0 and idxSelection < 0 and _
+        recContact.getField("objid") = objidMaster then
+        idxSelection = lstMaster.count - 1
+      end if
+    end if
+  next i
+
+  if (idxSelection < 0) then
+    idxSelection = 0
+  end if
+
+                   ' 8/2/01 MJS. Added sorting to the grid for large numbers of items
+  lstMaster.Sort "last_name", 0, "first_name"
+  cobj_MasterList.fill lstMaster
+  cobj_MasterList.refresh
+
+  if lstMaster.count > 0 then
+                   ' 8/2/01 MJS. Find proper row to highlight.
+    idxSelection = lstMaster.FindFirstIndex(objidMaster, "objid")
+    if (idxSelection < 0) then
+       idxSelection = 0
+    end if
+    clMasterList.SetSelected idxSelection
+    set recContact = lstMaster.itemByIndex(idxSelection)
+    LoadAliasList recContact.getField("objid"), objidAlias
+    SetGuiState "master selected"
+  else
+    set lstAlias.itemType = "Record"
+    cobj_AliasList.fill lstAlias
+    cobj_AliasList.refresh
+    SetGuiState "master deselected"
+    SetGuiState "alias deselected"
+  end if
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadCandidateList()
+' * locate non-obsolete rol_contcts (masters, aliases and/or candidates)
+' * filter out masters and aliases
+' * attempt to locate specified candidate for auto-select
+' * Fill candidate list and auto-select
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub LoadCandidateList(objidContact as Long)
+  dim lstCandidate as List
+  dim recCandidate as Record
+  dim lstMasterAlias as List
+  dim recMasterAlias as Record
+  dim lstContact as List
+  dim recContact as Record
+  dim strFname as String
+  dim strLname as String
+  dim i as Long
+  dim j as Long
+  dim bulkRet as new BulkRetrieve
+  dim idxSelected as Long
+  dim bFilter as Boolean
+  dim rc as Long
+
+  if objidContact > 0 then
+      '
+    ' Contact selected from 711 (or was old master). Auto-filter
+    ' based on first/last name. This is done to reduce the size
+    ' of the result set, improving performance.
+    '
+    bulkRet.simpleQuery 0, "contact"
+    bulkRet.appendFilter 0, "objid", cbEqual, objidContact
+    bulkRet.retrieveRecords
+
+    set lstContact = bulkRet.getRecordList(0)
+    set recContact = lstContact.itemByIndex(0)
+
+    strFname = recContact.getField("first_name")
+    strLname = recContact.getField("last_name")
+    fname_filter.text = iif(len(strFname) > 0, left$(strFname, 1), "")
+    lname_filter.text = iif(len(strLname) > 0, left$(strLname, 1), "")
+  end if
+
+  '
+  ' Locate non-obsolete rol_contcts (masters, aliases and/or candidates)
+  '
+  bFilter = False
+  bulkRet.clear
+  bulkRet.simpleQuery 0, "rol_contct"
+  if INCLUDE_INACT_CHK.value then
+    bulkRet.appendFilter 0, "status", cbNotEqual, 2 '2=obsolete
+  else
+    bulkRet.appendFilter 0, "status", cbEqual, 0 '2=active
+  end if
+  if fname_filter.text <> "" then
+    bulkRet.appendFilter 0, "first_name", cbLike, fname_filter.text + "%"
+    bFilter = True
+  end if
+  if lname_filter.text <> "" then
+    bulkRet.appendFilter 0, "last_name", cbLike, lname_filter.text + "%"
+    bfilter = True
+  end if
+  if site_id_filter.text <> "" then
+    bulkRet.appendFilter 0, "site_id", cbLike, site_id_filter.text + "%"
+    bFilter = True
+  end if
+  if site_name_filter.text <> "" then
+    bulkRet.appendFilter 0, "site", cbLike, site_name_filter.text + "%"
+    bFilter = True
+  end if
+  bulkRet.appendSort 0, item$(SORT.userData, 2, 2, "."), _
+    iif(ASC_DESC.selected = "Ascending", cbAscending, cbDescending)
+
+
+  if not bFilter then
+    '
+    ' No filter specified. On a tuned DB, this query can still be a dog, because
+    ' the bulkRet retrieves ALL columns for all rows. It is not optimized as is
+    ' the rol_contct fetch on the 711 contact selection form. 711 has hard-coded
+    ' behavior to retrieve only objids, then fetch the remainder of the record
+    ' data on demand as the user scrolls. We don't have that level of control
+    ' via CB at this time. It would be nice if the Record object could manage
+    ' this under the covers. Oh well.
+    '
+    rc = app.msgbox("It is recommended that you enter filter criteria in at least one " + _
+                    "filter field to perform a List, else the resulting query could " + _
+                    "take several minutes. Continue without filter?", cbYesNoCancel, _
+                    "Warning")
+    if rc <> ebYes then
+      exit sub
+    end if
+  end if
+
+  bulkRet.retrieveRecords
+  set lstCandidate = bulkRet.getRecordList(0)
+
+  '
+  ' Filter out masters and aliases
+  '
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  for i = 0 to lstMasterAlias.count - 1
+    set recMasterAlias = lstMasterAlias.itemByIndex(i)
+    j = 0
+    do while j < lstCandidate.count
+      set recCandidate = lstCandidate.itemByIndex(j)
+      if recMasterAlias.getField("objid") = recCandidate.getField("con_objid") then
+        lstCandidate.removeByIndex j
+      else
+        j = j + 1
+      end if
+    loop
+  next i
+
+  '
+  ' Attempt to locate specified candidate for auto-select
+  '
+  idxSelected = FindFirstIndex(lstCandidate, objidContact, "con_objid")
+  if idxSelected < 0 then
+    idxSelected = 0
+  end if
+
+  '
+  ' Fill candidate list and auto-select
+  '
+  cobj_CandidateList.fill lstCandidate
+  if lstCandidate.count > 0 then
+    clCandidateList.setSelected idxSelected
+    SetGuiState "candidate selected"
+  else
+    SetGuiState "candidate deselected"
+  end if
+
+  me.refresh
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ShowContact()
+' * find primary rol_contct for selected contact (master or alias)
+' * post contact form for resulting contact
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub ShowContact(cl as Control)
+  dim recContact as Record
+  dim lstRolContct as List
+  dim recRolContct as Record
+  dim bulkRet as new BulkRetrieve
+
+  set recContact = cl.selected
+  bulkRet.simpleQuery 0, "rol_contct"
+  bulkRet.appendFilter 0, "con_objid", cbEqual, recContact.getField("objid")
+  bulkRet.appendFilter 0, "primary_site", cbEqual, 1
+  bulkRet.retrieveRecords
+  set lstRolContct = bulkRet.getRecordList(0)
+
+  if lstRolContct.count > 0 then
+    set recRolContct = lstRolContct.itemByIndex(0)
+    app.ShowContact recRolContct, cbShowContactReadOnly
+  end if
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteMaster()
+' * clear x_objid_master, x_marked_by for specified master
+' * add master to bulkSave
+' * remove master from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub DeleteMaster(recMaster as Record, bDelMasterAlias as Boolean)
+  dim i as Long
+
+  '
+  ' Unmark master
+  '
+  recMaster.setField "x_objid_master", 0
+  recMaster.setField "x_marked_by", 0
+  UpdateRecord recMaster
+
+  '
+  ' Remove alias from MasterAlias list
+  '
+  if bDelMasterAlias then
+    DeleteMasterAlias recMaster.getField("objid")
+  end if
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteAlias()
+' * clear x_objid_master, x_marked_by for specified alias
+' * update alias in bulk save
+' * unrelate alias from specified master
+' * remove alias from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub DeleteAlias(recMaster as Record, recAlias as Record)
+  dim i as Long
+
+  '
+  ' Unrelate alias from master in bulkSave
+  '
+  recAlias.setField "x_objid_master", 0
+  recAlias.setField "x_marked_by", 0
+  UpdateRecord recAlias
+  UnRelateRecords recAlias, recMaster, "alias2contact"
+
+  '
+  ' Remove alias from MasterAlias list
+  '
+  DeleteMasterAlias recAlias.getField("objid")
+
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteMasterAlias()
+' * locate specified contact in master/alias list
+' * remove contact from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub DeleteMasterAlias(objid as Long)
+  dim lstMasterAlias as List
+  dim i as Long
+
+  set lstMasterAlias = cobj_MasterAliasList.contents
+  i = FindFirstIndex(lstMasterAlias, objid, "objid")
+  lstMasterAlias.removeByIndex i
+  cobj_MasterAliasList.fill lstMasterAlias
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' BulkSave wrappers
+' * UpdateRecord()
+'   * locate existing record in bulkSave by type/objid
+'   * 'update' record in bulkSave if not found
+'   * 'cancel/update' record in bulkSave if found
+' * RelateRecords()
+' * UnRelateRecords()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+sub UpdateRecord (rec as Record)
+  dim strType as String
+  dim iCount as Long
+  dim i as Long
+  dim recExist as Record
+
+  '
+  ' locate existing record in bulkSave by type/objid
+  '
+  strType = rec.recordType
+  iCount = gBulkSav.countByType(strType)
+  for i = 0 to iCount - 1
+    set recExist = gBulkSav.getRecordByIndex(i, strType)
+    if rec.getField("objid") = recExist.getField("objid") then
+      exit for
+    end if
+  next i
+
+  if i = iCount then
+    Set gUpdate = gBulkSav.updateRecord(rec, cbByValue)
+  else
+    gBulkSav.cancelRecord recExist
+    Set gUpdate = gBulkSav.updateRecord(rec, cbByValue)
+  end if
+end sub
+
+sub RelateRecords (rec as Record, rec2 as Record, strRel as String)
+  gBulkSav.relateRecords rec, rec2, strRel
+end sub
+
+sub UnRelateRecords (rec as Record, rec2 as Record, strRel as String)
+  gBulkSav.unrelateRecords rec, rec2, strRel
+end sub
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' SetGuiState()
+' * enable/disable command buttons based on specified state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+sub SetGuiState(strState as String)
+  '
+  ' Update status line
+  '
+  txtStatus.text = ""
+
+  select case strState
+    case "init"
+      me.disableControls "cmdMasterShow", "cmdMasterDelete", "cmdMerge", "cmdPreview"
+      me.disableControls "cmdAliasShow", "cmdAliasDelete"
+      me.disableControls "cmdCandidateShow", "cmdMasterAdd", "cmdAliasAdd"
+      me.disableControls "cmdMergeAll", "cmdPreviewAll", "cmdSave", "cmdSwap"
+      me.enableControls  "cmdCandidateList", "DONE"
+
+    case "master selected"
+      me.enableControls "cmdMasterShow", "cmdMasterDelete"
+      cmdMerge.enabled = (not cmdSave.enabled) and (clAliasList.listCount > 0)
+      cmdPreview.enabled = cmdMerge.enabled
+
+      cmdMergeAll.enabled = cmdMerge.enabled
+      cmdPreviewAll.enabled = cmdMergeAll.enabled
+
+      cmdAliasAdd.enabled = (clCandidateList.listCount > 0)
+      cmdSwap.enabled = cmdMasterShow.enabled  And cmdAliasShow.enabled
+
+    case "master deselected"
+      me.disableControls "cmdMasterShow", "cmdMasterDelete", "cmdAliasAdd", "cmdMerge", "cmdPreview", "cmdSwap"
+
+    case "alias selected"
+      me.enableControls "cmdAliasShow", "cmdAliasDelete"
+      cmdSwap.enabled = cmdMasterShow.enabled  And cmdAliasShow.enabled
+
+    case "alias deselected"
+      me.disableControls "cmdAliasShow", "cmdAliasDelete", "cmdSwap"
+
+    case "candidate selected"
+      me.enableControls "cmdCandidateShow", "cmdMasterAdd"
+      cmdAliasAdd.enabled = (clMasterList.listCount > 0)
+
+    case "candidate deselected"
+      me.disableControls "cmdCandidateShow", "cmdMasterAdd", "cmdAliasAdd"
+
+    case "savable"
+      me.enableControls "cmdSave"
+      me.disableControls "cmdMerge", "cmdPreview", "cmdMergeAll", "cmdPreviewAll"
+
+    case "not savable"
+      me.disableControls "cmdSave"
+      cmdMerge.enabled = (clAliasList.listCount > 0)
+      cmdPreview.enabled = cmdMerge.enabled
+      cmdMergeAll.enabled = cmdMerge.enabled
+      cmdPreviewAll.enabled = cmdMergeAll.enabled
+
+    case else
+      'err.raise 20000, "1100 SetGuiState", "Unknown GUI state '" + strState + "'".
+
+  end select
+
+  '
+  ' Enforce priv class
+  '
+  if not gbPrivMerge then
+    cmdMerge.enabled = False
+  end if
+  if not gbPrivMergeAll then
+    cmdMergeAll.enabled = False
+  end if
+  if not gbPrivPreview then
+    cmdPreview.enabled = False
+  end if
+  if not gbPrivPreviewAll then
+    cmdPreviewAll.enabled = False
+  end if
+  if not gbPrivSave then
+    cmdSave.enabled = False
+  end if
+  if not gbPrivSwap then
+    cmdSwap.enabled = False
+  end if
+
+  'original code, does not work on xvt clients
+  'cmdMerge.enabled = cmdMerge.enabled and gbPrivMerge
+  'cmdMergeAll.enabled = cmdMergeAll.enabled and gbPrivMergeAll
+  'cmdPreview.enabled = cmdPreview.enabled and gbPrivPreview
+  'cmdPreviewAll.enabled = cmdPreviewAll.enabled and gbPrivPreviewAll
+  'cmdSave.enabled = cmdSave.enabled and gbPrivSave
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' FindFirstIndex()
+' * loop over list items until matching field value located
+'
+' Note: this is a replacement for CB's list.findFirstIndex which RTE's if
+' specified record not found in list.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+function FindFirstIndex(lst as List, value as Variant, strField as String) as Long
+  dim rec as Record
+  dim i as Long
+
+  for i = 0 to lst.count - 1
+    set rec = lst.itemByIndex(i)
+    if rec.getField(strField) = value then
+      exit for
+    end if
+  next i
+
+  FindFirstIndex = iif(i < lst.count, i, -1)
+
+end function

@@ -1,0 +1,455 @@
+OBJECT  TYPE="window_db", NAME="WINDOW_DB_1926_1.0_merge_1.0"
+ UNIQUE_FIELD = id , ver_clarify, ver_customer, locale
+  FIELDS
+   title ="Address Details";
+   id=1926;
+   top_c=32;
+   bottom_c=204;
+   left_c=38;
+   right_c=541;
+   flags=0;
+   type=12;
+   form=1;
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   min_width=0;
+   min_height=0;
+   description ="";
+   dimmable=0;
+   dialog_name ="FORM_1926";
+   ver_clarify ="1.0";
+   ver_customer ="merge_1.0";
+   base_flag ="";
+   preload ="";
+   dlg_time_stamp = DATE "12/05/2003 17:30:03";
+   factor_top=0;
+   factor_bottom=0;
+   factor_left=0;
+   factor_right=0;
+   ver_cl_srce ="";
+   dev=0;
+   locale=0;
+   banner_icon=-1;
+   banner_color=-1;
+   backcolor=-1;
+   value1 ="";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="WINDOW_DB_1926_1.0_merge_1.0"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_1"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=1;
+   title ="Address Line 1:";
+   top_c=24;
+   bottom_c=40;
+   left_c=19;
+   right_c=115;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label1";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_1"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_2"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=2;
+   title ="Address Line 2:";
+   top_c=48;
+   bottom_c=64;
+   left_c=19;
+   right_c=115;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label1a";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_2"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_3"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=3;
+   title ="City/State/Zip:";
+   top_c=72;
+   bottom_c=88;
+   left_c=19;
+   right_c=115;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label1aa";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_3"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_4"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=4;
+   title ="Country/Time Zone:";
+   top_c=96;
+   bottom_c=112;
+   left_c=19;
+   right_c=144;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label1ab";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_4"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_5"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=5;
+   title ="";
+   top_c=24;
+   bottom_c=40;
+   left_c=172;
+   right_c=472;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="LBL_ADDR";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_5"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_6"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=6;
+   title ="";
+   top_c=48;
+   bottom_c=64;
+   left_c=172;
+   right_c=472;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="LBL_ADDR2";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_6"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_7"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=7;
+   title ="";
+   top_c=72;
+   bottom_c=88;
+   left_c=172;
+   right_c=472;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="LBL_CITY";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_7"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_8"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=8;
+   title ="";
+   top_c=96;
+   bottom_c=112;
+   left_c=172;
+   right_c=472;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="LBL_COUNTRY";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_8"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1926_1.0_merge_1.0_9"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=9;
+   title ="Done";
+   top_c=128;
+   bottom_c=148;
+   left_c=211;
+   right_c=307;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="BTN_DONE";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1926;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1926_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1926_1.0_merge_1.0_9"
+

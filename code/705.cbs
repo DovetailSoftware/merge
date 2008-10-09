@@ -1,0 +1,72 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' $Header: /fchoice/product/merge/705.cbs 1     12/12/03 2:44p Marty $
+'                                                                           
+' Product        :  Contact Merge
+'                                                                           
+' Name           :  706.cbs - Select Address form module
+'                                                                           
+' Description    :  Allows a user to display Address Alias form from the 
+'                   Clarify Select Address form.
+'
+'                   Form Event Handlers:              
+'                                                                           
+'                   form_load() - form has been loaded
+'                   cmdAliases_Click() - Aliases button has been selected
+'
+'                   Internal Routines:
+'                   
+'                   none
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive             
+'                   Austin, TX  78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' form_load()
+' * perform default action (required by CB)
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub form_load()
+  Me.DoDefault
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliases_Click()
+' * fetch selected rol_contct
+' * fetch rol_contact.objid 
+' * post Contact Alias form
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub cmdAliases_Click()
+  Dim frm As New Form
+  Dim lstAddr As List
+  Dim recAddr As New Record
+  Dim objidAddr As Long
+
+  Set lstAddr = FIELD_ARRAY.selectedList()
+  If lstAddr.count > 0 Then
+    Set recAddr = lstAddr.ItemByIndex(0)
+    objidAddr = recAddr.GetField("objid")
+  Else
+    objidAddr = 0
+  End If
+
+  frm.Show 1922, cbFrontIfUp
+  frm.Notify 20000, Str$(objidAddr)
+  Me.Dodefault
+End Sub

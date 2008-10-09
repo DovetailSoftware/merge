@@ -1,0 +1,58 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  Contact/Site Merge
+'                                                                           
+' Name           :  716.cbs                                           
+'                                                                           
+' Description    :  Allows a user to display the site merge form from the
+'                    Select Site Form
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive                 
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997, 1998 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+OPTION EXPLICIT
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load Method
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub Form_Load()
+  Me.DoDefault
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Aliases Button Click Method
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub CMDALIASES_Click()
+  Dim new_form   As New Form            ' New merge form to display
+  Dim sv_list    As List                ' List of site_view records
+  Dim sv_rec     As Record              ' Site view record from cust list
+  Dim site_objid As Long                ' Objid of selected site
+  
+                                        ' Get the list of selected records
+                                        ' If one selected...
+                                        ' Get the objid of the "first" (only)
+                                        ' Otherwise, call the form with no
+                                        ' objid
+  Set sv_list = FIELD_ARRAY.SelectedList()
+  if sv_list.Count > 0 Then
+    Set sv_rec = sv_list.ItemByIndex(0)
+    site_objid = sv_rec.GetField("objid")  
+  Else
+    site_objid = 0
+  End If
+
+                                        ' Display the merge form
+                                        ' Send it an initialization message
+  new_form.Show 1921, cbFrontIfUp
+  new_form.Notify 20000, Str$(site_objid) + "|" + Str$(INCLUDE_INACT_CHK.Value)
+End Sub

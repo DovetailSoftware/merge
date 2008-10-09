@@ -1,0 +1,75 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' $Header: /fchoice/product/merge/1926.cbs 1     12/12/03 2:44p Marty $
+'
+' Product        :  Contact/Site Merge
+'
+' Name           :  1926.cbs
+'
+' Description    :  Displays details of a selected address
+'
+' Author          : First Choice Software, Inc.
+'                   8900 Business Park Drive
+'                   Austin, TX 78759
+'                   (512) 418-2905
+'
+' Platforms       : This version supports Clarify 4.5 and later
+'
+' Copyright (C)  2003 First Choice Software, Inc.
+' All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Constants
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Const MSG_ADDRESS   = cbFirstMessage + 1
+Const MSG_ADDRESS_2 = cbFirstMessage + 2
+Const MSG_CITY      = cbFirstMessage + 3
+Const MSG_COUNTRY   = cbFirstMessage + 6
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load Method
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub Form_Load()
+  Me.DoDefault
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Done Button Click Method
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub BTN_DONE_Click()
+  Me.Close cbCloseChildren
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Message handler
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub Message(ByVal num As Long, ByVal info As String)
+  Select Case num
+    Case MSG_ADDRESS
+      LBL_ADDR.Caption = info
+    Case MSG_ADDRESS_2
+      LBL_ADDR2.Caption = info
+    Case MSG_CITY
+      LBL_CITY.Caption = info
+    Case MSG_COUNTRY
+      LBL_COUNTRY.Caption = info
+    Case cbCloseMessage
+      Me.Close cbCloseChildren
+    Case Else
+      Me.DoDefault
+  End Select    
+End Sub

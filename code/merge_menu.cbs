@@ -1,0 +1,127 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  fcMerge
+'                                                                           
+' Name           :  merge_menu.cbs                                           
+'                                                                           
+' Description    :  Provides code to allow the Merge GUI to be launched from a Clarify
+'                   application menu bar.   
+'                  
+'                   App Event Handlers:              
+'                                                                           
+'                   initialize_app() - clarify has been loaded    
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997, 1998 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module constants
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module definitions
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module globals
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' initialize_app()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub initialize_app() 
+  Dim pc_menu As New AppMenu
+  
+  '
+  ' Add Contact Alias to Policies and Customers
+  ' 
+  pc_menu.MenuBarID = 1001
+  pc_menu.Show
+  pc_menu.AddItem "New", "Contact Alias", "NewContactAlias"   
+  pc_menu.AddItem "Select", "Contact Alias", "NewContactAlias"   
+  pc_menu.AddItem "New", "Site Alias", "NewSiteAlias"   
+  pc_menu.AddItem "Select", "Site Alias", "NewSiteAlias"   
+  pc_menu.AddItem "New", "Address Alias", "NewAddrAlias"   
+  pc_menu.AddItem "Select", "Address Alias", "NewAddrAlias"   
+  pc_menu.AddItem "New", "Part Alias", "NewPartAlias"   
+  pc_menu.AddItem "Select", "Part Alias", "NewPartAlias"   
+  pc_menu.AddItem "New", "Employee Alias", "NewEmployeeAlias"   
+  pc_menu.AddItem "Select", "Employee Alias", "NewEmployeeAlias"   
+
+  '
+  ' Done
+  '
+  App.ShowDefaultMenu  
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' NewContactAlias_Click()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NewContactAlias_Click()
+  Dim frmAlias As New Form
+  '
+  ' Launch contact alias form and send mandatory 20000 message.
+  ' 
+  frmAlias.Show 1920, cbFrontIfUp
+  frmAlias.notify 20000, "0|False"  'mandatory for proper initialization
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' NewSiteAlias_Click()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NewSiteAlias_Click()
+  Dim frmAlias As New Form
+  '
+  ' Launch site alias form and send mandatory 20000 message.
+  ' 
+  frmAlias.Show 1921, cbFrontIfUp
+  frmAlias.notify 20000, "0|False"  'mandatory for proper initialization
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' NewAddrAlias_Click()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NewAddrAlias_Click()
+  Dim frmAlias As New Form
+  '
+  ' Launch address alias form and send mandatory 20000 message.
+  ' 
+  frmAlias.Show 1922, cbFrontIfUp
+  frmAlias.notify 20000, "0"  'mandatory for proper initialization
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' NewPartAlias_Click()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NewPartAlias_Click()
+  Dim frmAlias As New Form
+  '
+  ' Launch part alias form and send mandatory 20000 message.
+  ' 
+  frmAlias.Show 1923, cbFrontIfUp
+  frmAlias.notify 20000, "0"  'mandatory for proper initialization
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' NewEmployeeAlias_Click()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub NewEmployeeAlias_Click()
+  Dim frmAlias As New Form
+  '
+  ' Launch employee alias form and send mandatory 20000 message.
+  ' 
+  frmAlias.Show 1927, cbFrontIfUp
+  frmAlias.notify 20000, "0"  'mandatory for proper initialization
+End Sub

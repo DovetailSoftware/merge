@@ -1,0 +1,1220 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'
+' Product        :  fcMerge
+'
+' Name           :  1927.cbs
+'
+' Description    :  Employee Alias Form
+'
+' Author          : First Choice Software, Inc.
+'                   8900 Business Park Drive
+'                   Austin, TX 78759
+'                   (512) 418-2905
+'
+' Platforms       : This version supports Clarify 4.5 and later
+'
+' Copyright (C)  2005 First Choice Software, Inc.
+' All Rights Reserved
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+ Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Declare Sub LoadAll(objidEmpl as Long)
+Declare Sub LoadCandidateList(objidEmployee as Long)
+Declare Sub LoadMasterList(objidMaster as Long, objidAlias as Long)
+Declare Sub LoadAliasList(objidMaster as Long, objidAlias as Long)
+
+Declare Sub MergeMaster(do_merge as Boolean)
+Declare Sub MergeAll(do_merge as Boolean)
+Declare Sub Merge(objidMaster as Long, do_merge as Boolean)
+
+Declare Sub DeleteMaster(recMaster as Record, bDelMasterAlias as Boolean)
+Declare Sub DeleteAlias(recMaster as Record, recAlias as Record)
+Declare Sub DeleteMasterAlias(objid as Long)
+Declare Sub UpdateRecord (rec as Record)
+Declare Sub RelateRecords (rec as Record, rec2 as Record, strRel as String)
+Declare Sub UnRelateRecords (rec as Record, rec2 as Record, strRel as String)
+Declare Sub SetGuiState(strState as String)
+Declare Function FindFirstIndex(lst as List, value as Variant, strField as String) as Long
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' External forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'
+' merge.cbs
+'
+Declare Sub EmployeeMergeGUI(objidMaster As Long, bMerge As Boolean, strLogFile As String)
+Declare Function MergeConfigItem(strItem As String) As String
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module globals
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Dim gBulkSav         As BulkSave
+Dim gbPrivMerge      As Boolean
+Dim gbPrivMergeAll   As Boolean
+Dim gbPrivPreview    As Boolean
+Dim gbPrivPreviewAll As Boolean
+Dim gbPrivSave       As Boolean
+Dim gbPrivSwap       As Boolean
+Dim gUpdate          As Record
+
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Form Load Method
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub Form_Load()
+  Dim bulkRet        As New BulkRetrieve
+  Dim lstControl     As List
+  Dim recControl     As Record
+  Dim i              As Integer
+
+  Dim lstMaster      As New List
+  Dim lstAlias       As New List
+  Dim lstCandidate   As New List
+  Dim lstMasterAlias As New List
+  Dim recFilter      As New Record
+
+  Me.DoDefault
+
+  Set lstMaster.ItemType = "Record"
+  Set lstAlias.ItemType = "Record"
+  Set lstCandidate.ItemType = "Record"
+  Set lstMasterAlias.ItemType = "Record"
+  Set recFilter.RecordType = "empl_user"
+
+  'Cobj_STRSITEID.Fill ""
+  cobj_MasterList.Fill lstMaster
+  cobj_AliasList.Fill lstAlias
+  cobj_CandidateList.Fill lstCandidate
+  cobj_MasterAliasList.Fill lstMasterAlias
+  cobj_CandidateFilter.Fill recFilter
+
+  '
+  ' Check priv class. The buttons honored for priv class are:
+  ' * cmdMerge, cmdMergeAll, cmdPreview, cmdPreviewAll, cmdSave
+  '
+  ' Note: this check does not take into account
+  ' the user's resource config. Should there have multiple versions
+  ' of 1921, and the admin disables 'cmdMerge' for one user version,
+  ' but not another, 'cmdMerge' will be disabled regardless of the
+  ' 1921 user version specified in the user's resource config. This
+  ' should not be an issue for normal product usage.
+  '
+  gbPrivMerge = True
+  gbPrivMergeAll = True
+  gbPrivPreview = True
+  gbPrivPreviewAll = True
+  gbPrivSave = True
+  gbPrivSwap = True
+  bulkRet.SimpleQuery 0, "user"
+  bulkRet.AppendFilter 0, "objid", cbEqual, App.UserObjid
+  bulkRet.TraverseFromParent 1, "user_access2privclass", 0
+  bulkRet.TraverseFromParent 2, "privclass2control_db", 1
+  bulkRet.AppendFilter 2, "win_id", cbEqual, 1921
+  bulkRet.RetrieveRecords
+
+  Set lstControl = bulkRet.GetRecordList(2)
+  For i = 0 To lstControl.Count - 1
+    Set recControl = lstControl.ItemByIndex(i)
+    Select Case recControl.GetField("name")
+      Case "cmdMerge"
+        gbPrivMerge = False
+      Case "cmdMergeAll"
+        gbPrivMergeAll = False
+      Case "cmdPreview"
+        gbPrivPreview = False
+      Case "cmdPreviewAll"
+        gbPrivPreviewAll = False
+      Case "cmdSave"
+        gbPrivSave = False
+      case "cmdSwap"
+        gbPrivSwap = False
+    End Select
+  Next i
+
+  SetGuiState "init"
+
+  Set gBulkSav = New BulkSave
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMerge_Click()
+' cmdPreview_Click()
+' cmdMergeAll_Click()
+' cmdPreviewAll_Click()
+' MergeMaster()
+' MergeAll()
+' Merge()
+'
+' * invoke merge for selected master
+' * refresh candidate, master and alias lists
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdMerge_Click()
+  MergeMaster True
+End Sub
+
+Sub cmdPreview_Click()
+  MergeMaster False
+End Sub
+
+Sub cmdMergeAll_Click()
+  MergeAll True
+End Sub
+
+Sub cmdPreviewAll_Click()
+  MergeAll False
+End Sub
+
+Sub MergeMaster(do_merge As Boolean)
+  Dim master_rec  As Record
+  Dim objidMaster As Long
+
+  '
+  ' Fetch selected master
+  '
+  Set master_rec = clMasterList.Selected
+  objidMaster = master_rec.GetField("employee")
+
+  Merge objidMaster, do_merge
+End Sub
+
+Sub MergeAll(do_merge As Boolean)
+  Merge 0, do_merge
+End Sub
+
+Sub Merge(objidMaster As Long, do_merge As Boolean)
+  Dim strLogFile As String
+  Dim rc         As Variant
+
+  If do_merge Then
+    rc = App.Msgbox("There is no undo for this operation. Proceed?", cbYesNo, "Employee Merge")
+    If rc = ebNo Then
+      Exit Sub
+    End If
+    txtStatus.Text = "Merge in progress..."
+  Else
+    txtStatus.Text = "Preview in progress..."
+  End If
+  txtStatus.Refresh
+
+  '
+  ' Perform merge on selected master
+  '
+  On Error Goto err_no_dir
+  EmployeeMergeGUI objidMaster, do_merge, strLogFile
+  On Error Goto 0
+
+  If do_merge Then
+    '
+    ' Reload candidate, master and alias lists. Remember that the master,
+    ' as the result of the merge, is now a candidate again.
+    '
+    LoadAll objidMaster
+  Else
+    Dim strRawApp  As String
+    Dim iRawAppLen As Integer
+    Dim strLeft    As String
+    Dim strRight   As String
+    Dim strApp     As String
+    Dim i          As Integer
+    Dim j          As Integer
+
+    On Error Goto err_no_viewer
+    strRawApp = MergeConfigItem("FC Merge Report Viewer")
+    On Error Goto 0
+
+    iRawAppLen = Len(strRawApp)
+    i = Instr(strRawApp, "%s")
+
+    If i = 0 Then ' "notepad"
+      strLeft = strRawApp
+      strRight = ""
+    Elseif i = 1 Then ' "%s notepad"
+      strLeft = ""
+      strRight = Right$(strRawApp, iRawAppLen - 2)
+    Else ' "notepad %s"
+      strLeft = Left$(strRawApp, i - 1)
+      strRight = Right$(strRawApp, Iif((i + 2) <= iRawAppLen, i + 2, 0))
+    End If
+    strApp = strLeft + strLogFile + strRight
+
+
+    rc = Shell(strApp, ebNormalFocus)
+  End If
+
+done_process:
+  '
+  ' Update status line
+  '
+  If do_merge Then
+    txtStatus.Text = "Merge complete. Log file is '" + strLogFile + "'"
+  Else
+    txtStatus.Text = "Preview complete. Log file is '" + strLogFile + "'"
+  End If
+  Exit Sub
+
+err_no_viewer:
+  App.msgbox Err.Description
+  Resume done_process
+  Exit Sub
+
+err_no_dir:
+  App.Msgbox Err.Description
+  txtStatus.Text = ""
+  Exit Sub
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clAliasList_Click()
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub clAliasList_Click()
+  SetGuiState "alias selected"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Save Button
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdSave_Click()
+  gBulkSav.Save
+  Set gBulkSav = New BulkSave
+  SetGuiState "not savable"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdMasterDelete_Click()
+' * post confirmation
+' * unmark aliases for selected master
+' * unmark master
+' * select new master and load alias list
+' * update gui state
+' * update candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdMasterDelete_Click()
+  Dim alias_list As List
+  Dim master_rec As Record
+  Dim alias_rec As Record
+  Dim rc As Long
+  Dim objidMaster As Long
+
+  '
+  ' Fetch current master and list of aliases for this master
+  '
+  Set master_rec = clMasterList.Selected
+  Set alias_list = Cobj_AliasList.Contents
+
+  If alias_list.Count > 0 Then
+    rc = App.Msgbox("Unmarking this Master employee will also unmark " + _
+                    "its associated Alias (duplicate) employee. Continue?", cbYesNoCancel, _
+                    "Unmark Master Employee")
+    If rc <> ebYes Then
+      Exit Sub
+    End If
+
+    SetGuiState "savable"
+  End If
+
+  '
+  ' Loop over aliases, removing from list and unmarking as aliases
+  '
+  Do While alias_list.Count > 0
+    clAliasList.SetSelected 0
+    Set alias_rec = clAliasList.Selected
+    DeleteAlias master_rec, alias_rec
+    clAliasList.RemoveSelected
+  Loop
+
+  '
+  ' Unmark as master, and remove from MasterAlias list
+  '
+  DeleteMaster master_rec, True
+  objidMaster = master_rec.GetField("employee")
+
+  '
+  ' Refresh gui
+  '
+  If (clMasterList.RemoveSelected) = 0 Then
+    SetGuiState "master deselected"
+    SetGuiState "alias deselected"
+  Else
+    Set master_rec = clMasterList.Selected
+    LoadAliasList master_rec.GetField("employee"), 0
+  End If
+
+                   ' Removed 8/2/01 MJS. Don't refilter the candidate list. If you
+                   '  want to (with first/last initials, uncomment the next line.
+'  LoadCandidateList objidMaster
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteMasterAlias()
+' * locate specified employee in master/alias list
+' * remove employee from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub DeleteMasterAlias(objid As Long)
+  Dim master_alias_list As List
+  Dim i                 As Long
+
+  Set master_alias_list = Cobj_MasterAliasList.Contents
+  i = FindFirstIndex(master_alias_list, objid, "employee")
+  master_alias_list.RemoveByIndex i
+  Cobj_MasterAliasList.Fill master_alias_list
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteAlias()
+' * clear x_objid_master, x_marked_by for specified alias
+' * update alias in bulk save
+' * unrelate alias from specified master
+' * remove alias from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub DeleteAlias(recMaster As Record, recAlias As Record)
+  Dim i As Long
+
+  '
+  ' Unrelate alias from master in bulkSave
+  '
+  recAlias.SetField "x_objid_master", 0
+  recAlias.setField "x_marked_by", 0
+  UpdateRecord recAlias
+  UnRelateRecords recAlias, recMaster, "alias2employee"
+
+  '
+  ' Remove alias from MasterAlias list
+  '
+  DeleteMasterAlias recAlias.GetField("employee")
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliasDelete_Click()
+' * unmark selected alias
+' * unmark master if last alias unmarked
+' * update gui state
+' * reload candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdAliasDelete_Click()
+  Dim alias_rec         As Record
+  Dim master_rec        As Record
+  Dim i                 As Long
+
+  Set alias_rec = clAliasList.Selected
+  DeleteAlias clMasterList.Selected, alias_rec
+
+  If (clAliasList.RemoveSelected) = 0 Then
+    SetGuiState "alias deselected"
+
+    '
+    ' No more aliases for this master. Unmark master in bulkSav, but leave
+    ' as master with no aliases in GUI.
+    '
+    DeleteMaster clMasterList.Selected, False
+  End If
+
+  SetGuiState "savable"
+
+                   ' Removed 8/2/01 MJS. Don't refilter the candidate list. If you
+                   '  want to (with first/last initials, uncomment the next line.
+'  LoadCandidateList alias_rec.GetField("employee")
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' BulkSave wrappers
+' * UpdateRecord()
+'   * locate existing record in bulkSave by type/objid
+'   * 'update' record in bulkSave if not found
+'   * 'cancel/update' record in bulkSave if found
+' * RelateRecords()
+' * UnRelateRecords()
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub UpdateRecord(rec As Record)
+  Dim strType  As String
+  Dim iCount   As Long
+  Dim i        As Long
+  Dim recExist As Record
+
+  '
+  ' input is a view record
+  ' need to get the table record
+  '
+  Dim recTable As New Record
+  rec.GetObject "employee",recTable
+
+  '
+  ' locate existing record in bulkSave by type/objid
+  '
+  strType = recTable.RecordType
+  iCount = gBulkSav.CountByType(strType)
+  For i = 0 To iCount - 1
+    Set recExist = gBulkSav.GetRecordByIndex(i, strType)
+    If recTable.GetField("objid") = recExist.GetField("objid") Then
+      Exit For
+    End If
+  Next i
+
+  if i = iCount then
+    Set gUpdate = gBulkSav.updateRecord(recTable, cbByValue)
+  else
+    gBulkSav.cancelRecord recExist
+    Set gUpdate = gBulkSav.updateRecord(recTable, cbByValue)
+  end if
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RelateRecords()
+' Wrapper for BulkSave.RecordRecords that handles empl_user view 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub RelateRecords (rec As Record, rec2 As Record, strRel As String)
+  Dim objid1 As Long
+  Dim objid2 As Long
+  If rec.RecordType = "empl_user" Then 
+     objid1 = rec.GetField("employee")
+  Else
+     objid1 = rec.GetField("objid")
+  End If
+  
+  If rec2.RecordType = "empl_user" Then 
+     objid2 = rec2.GetField("employee")
+  Else
+     objid2 = rec2.GetField("objid")
+  End If
+  
+  gBulkSav.RelateRecordsFromToId "employee",objid1, "employee",objid2, strRel 
+
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' UnRelateRecords()
+' Wrapper for BulkSave.UnRecordRecords that handles empl_user view 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub UnRelateRecords (rec As Record, rec2 As Record, strRel As String)
+  Dim recTable As New Record
+  Dim recTable2 As New Record
+
+  rec.GetObject "employee",recTable
+  rec2.GetObject "employee",recTable2
+
+  gBulkSav.UnrelateRecords recTable, recTable2, strRel
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdSwap_Click()
+' * get alias and master record
+' * swap them in the grids
+' * fix them up in the bulksave
+' * reload alias list
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+sub cmdSwap_Click()
+  Dim recMaster As Record               ' Master record
+  Dim recAlias  As Record               ' Alias record
+  Dim lstAlias  As List                 ' List of aliases
+  Dim iLoop     As Integer              ' Looping integer
+  Dim iLoc      As Integer              ' Location integer
+  Dim recTemp   As Record               ' Temporary record
+  Dim lstMA     As List                 ' List of masters and aliases
+  Dim rectMast  As Record               ' Temp record back from update statement
+  Dim rectAl    As Record               ' Temp record back from update statement
+
+                                        ' Get master, alias, list of aliases
+                                        '  and master/aliases
+  Set recMaster = clMasterList.Selected
+  Set recAlias = clAliasList.Selected
+  Set lstAlias = Cobj_AliasList.Contents
+  Set lstMA    = Cobj_MasterAliasList.Contents
+
+                   ' MJS 9/13/01. Enhancement. Don't allow "no alias" ones to be made aliases
+  If recMaster.GetField("x_no_alias") = 1 Then
+  	 App.MsgBox "The master employee is marked as 'no alias.' You may not make it an alias."
+  	 Exit Sub
+  End If																		
+
+                                        ' Loop through aliases
+                                        ' Get each one and update it in the
+                                        '  bulksave to point to the alias
+  For iLoop = 0 To lstAlias.Count - 1
+    Set recTemp = lstAlias.ItemByIndex(iLoop)
+
+    recTemp.SetField "x_objid_master", recAlias.GetField("employee")
+    UpdateRecord recTemp
+    UnRelateRecords recTemp, recMaster, "alias2employee"
+    RelateRecords recTemp, recAlias, "alias2employee"
+
+                                        ' Update it in the list of mast/aliases
+                                        '  too. Point each one to the alias
+    iLoc = lstMA.FindFirstIndex(recMaster.GetField("employee"), "x_objid_master")
+    Set recTemp = lstMA.ItemByIndex(iLoc)
+    recTemp.SetField "x_objid_master", recAlias.GetField("employee")
+    lstMA.ReplaceByIndex iLoc, recTemp
+  Next iLoop
+
+                                        ' Update the master to be an alias
+                                        '  in the bulksave
+                                        ' Remember new master record
+  recMaster.SetField "x_objid_master", recAlias.GetField("employee")
+  recMaster.SetField "x_marked_by", App.UserObjid
+  UpdateRecord recMaster
+  Set rectMast = gUpdate
+                                        ' Update the alias to be a master
+                                        '  in the bulksave
+                                        ' Remember new alias record
+                                        ' Clear and set the relations
+  recAlias.SetField "x_objid_master", 1
+  recAlias.SetField "x_marked_by", 0
+  UpdateRecord recAlias
+  Set rectAl = gupdate
+  UnRelateRecords recAlias, recMaster, "alias2employee"
+  RelateRecords rectMast, rectAl, "alias2employee"
+
+                                        ' Now switch the two in the
+                                        '  list of master/aliases
+  iLoc = lstMA.FindFirstIndex(recMaster.GetField("employee"), "employee")
+  Set recTemp = lstMA.ItemByIndex(iLoc)
+  recTemp.SetField "x_objid_master", recAlias.GetField("employee")
+  lstMA.ReplaceByIndex iLoc, recTemp
+
+                                        ' When done, put back in Cobj
+  iLoc = lstMA.FindFirstIndex(recAlias.GetField("employee"), "employee")
+  Set recTemp = lstMA.ItemByIndex(iLoc)
+  recTemp.SetField "x_objid_master", 1
+  lstMA.ReplaceByIndex iLoc, recTemp
+  Cobj_MasterAliasList.Fill lstMA
+
+                                        ' Replace item in master grid
+                                        ' Reload the alias grid
+                                        ' Set the GUI state
+  iLoop = clMasterList.ListIndex
+  clMasterList.ReplaceItem recAlias, iLoop
+  LoadMasterList recTemp.getField("employee"), 0
+  LoadAliasList recAlias.getField("employee"), 0
+  SetGuiState "savable"
+  cmdsave.value = True
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add an Alias
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdAliasAdd_Click()
+  Dim alias_rec         As New Record
+  Dim master_rec        As Record
+  Dim master_alias_list As List
+
+  Set alias_rec = clCandidateList.Selected
+
+  Set master_rec = clMasterList.Selected
+
+                   ' MJS 9/13/01. Enhancement. Don't allow "no alias" ones to be made aliases
+  If alias_rec.GetField("x_no_alias") = 1 Then
+  	 App.MsgBox "This employee is marked as 'no alias.' You may not make it an alias."
+  	 Exit Sub
+  End If
+
+  If (clCandidateList.RemoveSelected) = 0 Then
+    SetGuiState "candidate deselected"
+  End If
+
+  Set master_alias_list = Cobj_MasterAliasList.Contents
+  alias_rec.SetField "x_objid_master", master_rec.GetField("employee")
+                   ' MJS 2/25/03 - Set the current user as the "marker"
+  alias_rec.setField "x_marked_by", App.UserObjid
+  master_alias_list.AppendItem alias_rec
+
+                   ' GMS 12/7/05 - Make sure the master record is 
+                   ' marked as a master
+  master_rec.SetField "x_objid_master", 1
+
+  UpdateRecord master_rec
+  UpdateRecord alias_rec
+  RelateRecords alias_rec, master_rec, "alias2employee"
+
+  LoadAliasList master_rec.GetField("employee"), alias_rec.GetField("employee")
+
+  SetGuiState "savable"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Show an employee
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub ShowEmployee(cl As Control)
+  Dim employee_rec As Record
+
+  Set employee_rec = cl.Selected
+  App.ShowEmployee employee_rec, cbShowSiteReadOnly
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Show the Master Site
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdMasterShow_Click()
+  ShowEmployee clMasterList
+End Sub
+
+Sub clMasterList_DblClick()
+  ShowEmployee clMasterList
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Show the Alias Site
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdAliasShow_Click()
+  ShowEmployee clAliasList
+End Sub
+
+Sub clAliasList_DblClick()
+  ShowEmployee clAliasList
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Load the Alias List
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub LoadAliasList(objidMaster As Long, objidAlias As Long)
+  Dim master_list As List
+  Dim alias_list  As New List
+  Dim site_rec    As Record
+  Dim i           As Long
+  Dim idxSelected As Long
+
+  alias_list.ItemType = "Record"
+
+  idxSelected = -1
+  Set master_list = Cobj_MasterAliasList.Contents
+  For i = 0 To master_list.Count - 1
+    Set site_rec = master_list.ItemByIndex(i)
+    If site_rec.GetField("x_objid_master") = objidMaster Then
+      alias_list.AppendItem site_rec
+      If objidAlias > 0 And idxSelected < 0 And _
+        site_rec.GetField("employee") = objidAlias Then
+        idxSelected = alias_list.Count - 1
+      End If
+    End If
+  Next i
+
+                   ' 8/2/01 MJS. Added sorting to the grid for large numbers of items
+  alias_list.Sort "login_name", 0
+  Cobj_AliasList.Fill alias_list
+  Me.Refresh
+
+  If alias_list.Count > 0 Then
+                   ' 8/2/01 MJS. Highlight proper alias row.
+    idxSelected = alias_list.FindFirstIndex(objidAlias, "employee")
+    if idxSelected < 0 then
+       idxSelected = 0
+    end if
+    clAliasList.SetSelected idxSelected
+    SetGuiState "alias selected"
+  Else
+    SetGuiState "alias deselected"
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Load the list(s) for a given master (and perhaps for a given alias)
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub LoadMasterList(objidMaster As Long, objidAlias As Long)
+  Dim master_alias_list As New List
+  Dim master_list       As New List
+  Dim idxSelection      As Long
+  Dim i                 As Long
+  Dim empl_rec          As Record
+  Dim alias_list        As New List
+
+  master_list.ItemType = "Record"
+  idxSelection = -1
+  Set master_alias_list = Cobj_MasterAliasList.Contents
+  For i = 0 To master_alias_list.Count - 1
+    Set empl_rec = master_alias_list.ItemByIndex(i)
+    If empl_rec.GetField("x_objid_master") = 1 Then
+      master_list.AppendItem empl_rec
+      If objidMaster > 0 And idxSelection < 0 And _
+        empl_rec.GetField("employee") = objidMaster Then
+        idxSelection = master_list.Count - 1
+      End If
+    End If
+  Next i
+
+  If (idxSelection < 0) Then
+    idxSelection = 0														   
+  End If
+
+                   ' 8/2/01 MJS. Added sorting to the grid for large numbers of items
+				   'gms: not sure of this field name:
+  master_list.Sort "login_name", 0
+  Cobj_MasterList.Fill master_list
+  Cobj_MasterList.Refresh
+
+  If master_list.Count > 0 Then
+                   ' 8/2/01 MJS. Find proper row to highlight.
+    idxSelection = master_list.FindFirstIndex(objidMaster, "employee")
+    if (idxSelection < 0) then
+       idxSelection = 0
+    end if
+    clMasterList.SetSelected idxSelection
+    Set empl_rec = master_list.ItemByIndex(idxSelection)
+
+    LoadAliasList empl_rec.GetField("employee"), objidAlias
+    SetGuiState "master selected"
+  Else
+    Set alias_list.ItemType = "Record"
+    Cobj_AliasList.Fill alias_list
+    Cobj_AliasList.Refresh
+    SetGuiState "master deselected"
+    SetGuiState "alias deselected"
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Add an employee as a Master
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdMasterAdd_Click()
+  Dim employee_view_rec As Record
+  Dim master_rec    As Record
+  Dim master_list   As List
+
+  Set master_rec = clCandidateList.Selected
+
+  If (clCandidateList.removeSelected) = 0 Then
+    SetGuiState "candidate deselected"
+  End If
+
+  Set master_list = Cobj_MasterAliasList.Contents
+  master_rec.SetField "x_objid_master", 1
+  master_list.AppendItem master_rec
+  LoadMasterList master_rec.GetField("employee"), 0
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Show the Candidate employee
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdCandidateShow_Click()
+  Dim employee_view_rec As Record
+  Dim employee_rec      As Record
+
+  Set employee_view_rec = clCandidateList.Selected
+  App.ShowEmployee employee_view_rec, cbShowSiteReadOnly
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' message()
+' * 20000 - load form with current master/alias configuration
+' * cbCloseMessage - close form
+' * else - do default
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub message(ulMsg As Long, strInfo As String)
+  Select Case ulMsg
+    Case 20000
+      '
+      ' strValue = "<site objid>|<active/inactive flag>"
+      '
+      'INCLUDE_INACT_CHK.Value = Cbool(Item$(strInfo, 2, 2, "|"))
+      LoadAll Val(Item$(strInfo, 1, 1, "|"))
+    Case cbCloseMessage
+      Me.Close
+      Me.DoDefault
+
+    Case Else
+      Me.DoDefault
+  End Select
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clMasterList_Click()
+' * load alias list for selected master
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub clMasterList_Click()
+  Dim master_rec As Record
+
+  Set master_rec = clMasterList.Selected
+  LoadAliasList master_rec.GetField("employee"), 0
+  SetGuiState "master selected"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' clCandidateList_Click()
+' * update gui state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub clCandidateList_Click()
+  SetGuiState "candidate selected"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdCandidateList_Click()
+' * reload candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub cmdCandidateList_Click()
+  LoadCandidateList 0
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' done_click()
+' * post confirmation dialog
+' * unpost form
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub DONE_Click()
+  Dim rc As Long
+
+  If cmdSave.enabled Then
+    rc = App.Msgbox("Save your changes?", cbSaveDiscardCancel, _
+                      "Site Alias")
+    If rc = ebCancel Then
+      '
+      ' User changed their mind.
+      '
+      Exit Sub
+    End If
+
+    If rc = 8 Then   '8=save
+      '
+      ' Save changes
+      '
+      gBulkSav.Save
+    End If
+  End If
+
+  '
+  ' Close form
+  '
+  Me.Close
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadAll()
+' * fetch all non-obsolete employees which are masters or aliases
+' * load list into master/alias list
+' * load master list
+' * load candidate list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub LoadAll(objidEmpl As Long)
+  Dim master_alias_list As New List
+  Dim site_list         As List
+  Dim site_rec          As Record
+  Dim objidMaster       As Long
+  Dim objidAlias        As Long
+  Dim bulkRet           As New BulkRetrieve
+
+  Set master_alias_list.itemType = "Record"
+
+  bulkRet.SimpleQuery 0, "empl_user"
+  bulkRet.AppendFilter 0, "status", cbNotEqual, 2  '2=obsolete
+  bulkRet.AppendFilter 0, "login_name", cbNotEqual, "sa"
+  bulkRet.AppendFilter 0, "x_objid_master", cbGreater, 0  '>0 is master or alias
+  If objidEmpl <> 0 Then
+    bulkRet.SimpleQuery 1, "empl_user"
+    bulkRet.AppendFilter 1, "employee", cbEqual, objidEmpl
+  End If
+  bulkRet.RetrieveRecords
+  Set master_alias_list = bulkRet.GetRecordList(0)
+  Cobj_MasterAliasList.Fill master_alias_list
+
+  objidMaster = 0
+  objidAlias = 0
+  If objidEmpl <> 0 Then
+    Set site_list = bulkRet.GetRecordList(1)
+    Set site_rec = site_list.ItemByIndex(0)
+    If site_rec.GetField("x_objid_master") = 1 Then
+      objidMaster = objidEmpl
+      objidAlias = 0
+    Elseif site_rec.GetField("x_objid_master") > 1 Then
+      objidMaster = site_rec.GetField("x_objid_master")
+      objidAlias = objidEmpl
+    End If
+  End If
+
+  LoadMasterList objidMaster, objidAlias
+  '
+  ' If no employee selected from select employee form. Do not auto-load candidate list
+  ' because the resulting query can take several minutes.
+  '
+  If objidEmpl <> 0 Then
+    LoadCandidateList objidEmpl
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' LoadCandidateList()
+' * locate non-obsolete rol_contcts (masters, aliases and/or candidates)
+' * filter out masters and aliases
+' * attempt to locate specified candidate for auto-select
+' * Fill candidate list and auto-select
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub LoadCandidateList(objidEmployee As Long)
+  Dim lstCandidate   As List
+  Dim recCandidate   As Record
+  Dim lstMasterAlias As List
+  Dim recMasterAlias As Record
+  Dim lstEmpl        As List
+  Dim recEmpl        As Record
+  Dim i              As Long
+  Dim j              As Long
+  Dim bulkRet        As New BulkRetrieve
+  Dim idxSelected    As Long
+  Dim bFilter        As Boolean
+  Dim rc             As Long
+
+  If objidEmployee > 0 Then
+    '
+    ' Employee selected from select employee form (or was old master). Auto-filter
+    ' based on objid. This is done to reduce the size
+    ' of the result set, improving performance.
+    '
+    bulkRet.SimpleQuery 0, "empl_user"
+    bulkRet.AppendFilter 0, "employee", cbEqual, objidEmployee
+    bulkRet.RetrieveRecords
+
+    Set lstEmpl = bulkRet.GetRecordList(0)
+    Set recEmpl = lstEmpl.ItemByIndex(0)
+
+    login_name_filter.Text = recEmpl.getField("login_name")
+  End If
+
+  '
+  ' Locate non-obsolete site_views (masters, aliases and/or candidates)
+  '
+  bFilter = False
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "empl_user"
+  bulkRet.AppendFilter 0, "login_name", cbNotEqual, "sa"
+  If INCLUDE_INACT_CHK.Value Then
+    'bulkRet.AppendFilter 0, "status", cbNotEqual, 2 '2=obsolete
+  Else
+    bulkRet.AppendFilter 0, "status", cbEqual, 1 '1=active
+  End If
+  If first_name_filter.Text <> "" Then
+    bulkRet.AppendFilter 0, "first_name", cbLike, first_name_filter.Text + "%"
+    bFilter = True
+  End If
+  If last_name_filter.Text <> "" Then
+    bulkRet.AppendFilter 0, "last_name", cbLike, last_name_filter.Text + "%"
+    bFilter = True
+  End If
+  If login_name_filter.Text <> "" Then
+    bulkRet.AppendFilter 0, "login_name", cbLike, login_name_filter.Text + "%"
+    bFilter = True
+  End If
+  bulkRet.AppendSort 0, Item$(SORT.userData, 2, 2, "."), _
+  Iif(ASC_DESC.Selected = "Ascending", cbAscending, cbDescending)
+
+
+  If Not bFilter Then
+    '
+    ' No filter specified. Warn user. 
+    '
+    rc = App.Msgbox("It is recommended that you enter filter criteria in at least one " + _
+                    "filter field to perform a List, else the resulting query could " + _
+                    "take several minutes. Continue without filter?", cbYesNoCancel, _
+                    "Warning")
+    If rc <> ebYes Then
+      Exit Sub
+    End If
+  End If
+
+  bulkRet.RetrieveRecords
+  Set lstCandidate = bulkRet.GetRecordList(0)
+
+  '
+  ' Filter out masters and aliases
+  '
+  Set lstMasterAlias = Cobj_MasterAliasList.Contents
+  For i = 0 To lstMasterAlias.Count - 1
+    Set recMasterAlias = lstMasterAlias.ItemByIndex(i)
+    j = 0
+    Do While j < lstCandidate.Count
+      Set recCandidate = lstCandidate.ItemByIndex(j)
+      If recMasterAlias.GetField("employee") = recCandidate.GetField("employee") Then
+        lstCandidate.RemoveByIndex j
+      Else
+        j = j + 1
+      End If
+    Loop
+  Next i
+
+  '
+  ' Attempt to locate specified candidate for auto-select
+  '
+  idxSelected = FindFirstIndex(lstCandidate, objidEmployee, "employee")
+  If idxSelected < 0 Then
+    idxSelected = 0
+  End If
+
+  '
+  ' Fill candidate list and auto-select
+  '
+  Cobj_CandidateList.Fill lstCandidate
+  If lstCandidate.Count > 0 Then
+    clCandidateList.SetSelected idxSelected
+    SetGuiState "candidate selected"
+  Else
+    SetGuiState "candidate deselected"
+  End If
+
+  'Me.Refresh
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' DeleteMaster()
+' * clear x_objid_master, x_marked_by for specified master
+' * add master to bulkSave
+' * remove master from master/alias list
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub DeleteMaster(recMaster As Record, bDelMasterAlias As Boolean)
+  Dim i As Long
+
+  '
+  ' Unmark master
+  '
+  recMaster.SetField "x_objid_master", 0
+  recMaster.SetField "x_marked_by", 0
+  UpdateRecord recMaster
+
+  '
+  ' Remove alias from MasterAlias list
+  '
+  If bDelMasterAlias Then
+    DeleteMasterAlias recMaster.GetField("employee")
+  End If
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' SetGuiState()
+' * enable/disable command buttons based on specified state
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub SetGuiState(strState As String)
+  '
+  ' Update status line
+  '
+  txtStatus.Text = ""
+
+  Select Case strState
+    Case "init"
+      Me.disableControls "cmdMasterShow", "cmdMasterDelete", "cmdMerge", "cmdPreview"
+      Me.disableControls "cmdAliasShow", "cmdAliasDelete"
+      Me.disableControls "cmdCandidateShow", "cmdMasterAdd", "cmdAliasAdd"
+      Me.disableControls "cmdMergeAll", "cmdPreviewAll", "cmdSave", "cmdSwap"
+      Me.enableControls  "cmdCandidateList", "DONE"
+
+    Case "master selected"
+      Me.enableControls "cmdMasterShow", "cmdMasterDelete"
+      cmdMerge.enabled = (not cmdSave.enabled) and (clAliasList.listCount > 0)
+      cmdPreview.enabled = cmdMerge.enabled
+
+      cmdMergeAll.enabled = cmdMerge.enabled
+      cmdPreviewAll.enabled = cmdMergeAll.enabled
+
+      cmdAliasAdd.enabled = (clCandidateList.listCount > 0)
+      cmdSwap.enabled = cmdMasterShow.enabled  And cmdAliasShow.enabled
+      cmdSwap.enabled = cmdMasterShow.enabled  And cmdAliasShow.enabled
+
+    Case "master deselected"
+      Me.disableControls "cmdMasterShow", "cmdMasterDelete", "cmdAliasAdd", "cmdMerge", "cmdPreview", "cmdSwap"
+
+    Case "alias selected"
+      Me.enableControls "cmdAliasShow", "cmdAliasDelete", "cmdSwap"
+
+    Case "alias deselected"
+      Me.disableControls "cmdAliasShow", "cmdAliasDelete", "cmdSwap"
+
+    Case "candidate selected"
+      Me.enableControls "cmdCandidateShow", "cmdMasterAdd"
+      cmdAliasAdd.enabled = (clMasterList.listCount > 0)
+
+    Case "candidate deselected"
+      Me.disableControls "cmdCandidateShow", "cmdMasterAdd", "cmdAliasAdd"
+
+    Case "savable"
+      Me.enableControls "cmdSave"
+      Me.disableControls "cmdMerge", "cmdPreview", "cmdMergeAll", "cmdPreviewAll"
+
+    Case "not savable"
+      Me.disableControls "cmdSave"
+      cmdMerge.enabled = (clAliasList.listCount > 0)
+      cmdPreview.enabled = cmdMerge.enabled
+      cmdMergeAll.enabled = cmdMerge.enabled
+      cmdPreviewAll.enabled = cmdMergeAll.enabled
+
+    Case Else
+      'err.raise 20000, "1100 SetGuiState", "Unknown GUI state '" + strState + "'".
+  End Select
+
+  '
+  ' Enforce priv class
+  '
+  If Not gbPrivMerge Then
+    cmdMerge.Enabled = False
+  End If
+  If Not gbPrivMergeAll Then
+    cmdMergeAll.Enabled = False
+  End If
+  If Not gbPrivPreview Then
+    cmdPreview.Enabled = False
+  End If
+  If Not gbPrivPreviewAll Then
+    cmdPreviewAll.Enabled = False
+  End If
+  If Not gbPrivSave Then
+    cmdSave.Enabled = False
+  End If
+  if not gbPrivSwap then
+    cmdSwap.enabled = False
+  end if
+
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' FindFirstIndex()
+' * loop over list items until matching field value located
+'
+' Note: this is a replacement for CB's list.findFirstIndex which RTE's if
+' specified record not found in list.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Function FindFirstIndex(lst As List, value As Variant, strField As String) As Long
+  Dim rec As Record
+  Dim i   As Long
+
+  For i = 0 To lst.Count - 1
+    Set rec = lst.ItemByIndex(i)
+    If rec.GetField(strField) = value Then
+      Exit For
+    End If
+  Next i
+
+  FindFirstIndex = Iif(i < lst.Count, i, -1)
+End Function

@@ -1,0 +1,22 @@
+'
+' merge.dir - ClearBasic directives file
+'
+
+merge_menu.cbs G clarify fc_merge           ' Globals (optional)
+merge.cbs G clarify merge                   ' Contact Merge globals
+site_merge.cbs G clarify site_merge         ' Site Merge globals
+addr_merge.cbs G clarify addr_merge         ' Address merge
+part_merge.cbs G clarify part_merge         ' Part merge
+employee_merge.cbs G clarify employee_merge ' Employee merge
+
+'610.cbs F 610 7.0 merge_1.0         ' 610 - select part numbers
+'705.cbs F 705 5.0 merge_1.0         ' 705 - select address 
+'711.cbs F 711 5.0 merge_1.0         ' 711 - select contact
+'716.cbs F 716 5.0 merge_1.0         ' 716 - select site
+
+1920.cbs F 1920 1.0 merge_1.0        ' 1920 - contact merge
+1921.cbs F 1921 1.0 merge_1.0        ' 1921 - site merge
+1922.cbs F 1922 1.0 merge_1.0        ' 1922 - Address merge
+1926.cbs F 1926 1.0 merge_1.0        ' 1926 - Address details
+1923.cbs F 1923 1.0 merge_1.0        ' 1923 - Part merge
+1927.cbs F 1927 1.0 merge_1.0        ' 1927 - Employee merge

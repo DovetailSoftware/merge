@@ -1,0 +1,384 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Product        :  Contact/Site Merge(tm)
+'
+' Series         :  First Choice Administration Series(tm)
+'
+' Name           :  duns_inter.cbs
+'
+' Description    :  Sample interface to demonstrate how to mark master/aliases in a 
+'                    batch environment. This program reads a file that contains the
+'                    following syntax:
+'
+'                    <siteID>|<duns#>
+'
+'                   If more than one site is found that has the same duns #, then the
+'                    second (and subsequent) sites are marked as aliases of the first
+'                    (master) site.
+'
+'                   NOTE: This interface is intended to be illustrative only. It matches
+'                    one customer's needs. But it can be easily adapted to many other
+'                    uses to automatically mark contacts or sites.
+'
+' Author          : First Choice Software, Inc.
+'                   4412 Spicewood Springs Road
+'                   Suite 701
+'                   Austin, TX  78759
+'                   (512) 418-2905
+'                   EMAIL: support@fchoice.com
+'                   www.fchoice.com
+'
+' Platforms       : This version supports Clarify 4.5 and later
+'
+' Copyright (C)  1998 First Choice Software, Inc.
+' All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Site Merge From Duns Number Interface                             '''
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+OPTION EXPLICIT
+
+Dim warn_file     As String             ' Name of the warning file
+Dim err_file      As String             ' Name of the error file
+Dim badrec_file   As String             ' Name of the bad record file
+Dim status_file   As String             ' Name of the status file
+Dim in_file       As String             ' Name of the input file
+Dim num_error     As Integer            ' Number of errors found
+Dim num_warn      As Integer            ' Number of warnings found
+Dim num_processed As Integer            ' Number of records processed
+Dim num_ignored   As Integer            ' Number of records ignored
+Dim err_string    As String             ' General error string
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Delete a Specified File
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub del_file(file_name As String)
+                                        ' Set error trap
+                                        ' Delete the file
+  On Error Goto no_such_file
+  Kill file_name
+
+                                        ' If error or not...
+                                        ' Clear the error trap
+no_such_file:
+  On Error Goto 0
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Status/error/warning message output functions
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                         
+Sub status_msg(the_msg As String)
+                                        ' Print to status file
+  Print #3, "[" + Trim$(App.CurrentDate) + "] " + the_msg
+End Sub
+
+Sub error_msg(the_msg As String, line_num As Integer)
+                                        ' Print to error file with or without
+                                        '  the line number in the file
+                                        ' Incrment the number of errors
+  If line_num > 0 Then
+     Print #4, "[" + Trim$(App.CurrentDate) + "] Record " + _
+	    Trim$(Str$(line_num)) + ". " + the_msg
+  Else
+     Print #4, "[" + Trim$(App.CurrentDate) + "] " + the_msg
+  End If
+  num_error = num_error + 1
+End Sub
+
+Sub warn_msg(the_msg As String, line_num As Integer, is_badrec As Boolean)
+  Dim add_str As String
+
+                                        ' Assume no extra string
+                                        ' If also bad record, add extra string
+                                        ' Print to warning file with or without
+                                        '  the line number in the file
+                                        ' Incrment the number of warnings
+  add_str = ""
+  If is_badrec Then
+     add_str = Chr$(13) + Chr$(10) + "             Record added to bad record log."
+  End If
+  If line_num > 0 Then
+     Print #5, "[" + Trim$(App.CurrentDate) + "] Record " + _
+	    Trim$(Str$(line_num)) + ". " + the_msg + add_str
+  Else
+     Print #5, "[" + Trim$(App.CurrentDate) + "] " + the_msg + add_str
+  End If
+  num_warn = num_warn + 1
+End Sub
+
+Sub badrec_msg(the_msg As String)
+                                        ' Print to bad record log
+                                        ' Increment number of ignored recs
+  Print #6, the_msg
+  num_ignored = num_ignored + 1
+End Sub
+
+Sub print_warn_msg(warn_val As Integer, line_num As Integer, is_badrec As Boolean)
+  Dim t_str As String
+
+                                        ' Generate proper warning message
+  Select Case warn_val
+   Case -1
+     t_str = "Duns number of '" + err_string + "' is too long."
+   Case -2
+     t_str = "Site ID of '" + err_string + "' is not found in the database."
+   Case -3
+     t_str = "Cannot parse input line. Improper number of fields."
+  End Select
+  warn_msg t_str, line_num, is_badrec
+End Sub
+
+Sub print_err_msg(err_val As Integer)
+                                        ' Print proper error message
+  Select Case err_val
+  Case -400
+     error_msg "Cannot open file: " + err_string, -1  
+  End Select
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Check the required files
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Function check_files()
+  Dim working_file As String            ' Current working file
+  Dim cur_time     As Date              ' Current date/time in date format
+
+                                        ' Get the current time
+                                        ' Delete files from last run
+  cur_time = CDate(App.CurrentDate)
+  del_file warn_file
+  del_file badrec_file
+  del_file err_file
+  del_file status_file
+  
+                                        ' Open status file. Print header
+  Open status_file For Output As #3
+  Print #3, "Status for Duns Number Interface"
+  Print #3, 
+  Print #3, "Date of Interface: " + Format(cur_time, "mm/dd/yy")
+  Print #3, "Input File Name  : " + in_file
+  Print #3, 
+  status_msg "Interface started."
+
+                                        ' Open error file. Print header
+  Open err_file For Output As #4
+  Print #4, "Errors for Duns Number Interface"
+  Print #4, "Date of Interface: " + Format(cur_time, "mm/dd/yy")
+  Print #4, 
+
+                                        ' Open warning file. Print header
+                                        ' Open bad record file.
+  Open warn_file For Output As #5
+  Print #5, "Warnings for Duns Number Interface"
+  Print #5, "Date of Interface: " + Format(cur_time, "mm/dd/yy")
+  Print #5, 
+  Open badrec_file For Output As #6
+
+                                        ' Check to make sure that input file
+                                        ' is there. If so, open it
+  On Error Goto missing_file
+  working_file = in_file
+  Open in_file For Input As #1
+  On Error Goto 0
+
+                                        ' Everything was OK
+  check_files = 0
+  Exit Function
+
+                                        ' A needed file was missing. 
+                                        '  Generate error
+missing_file:
+  On Error Goto 0
+  check_files = -400
+  err_string = working_file
+End Function
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Initialize Variables
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub init_vars()
+                                        ' Set initial values for important
+                                        '  variables:
+
+                                        ' File names for input/output files
+  warn_file = "warn.log"  
+  badrec_file = "badrec.log"
+  status_file = "status.log"
+  err_file = "error.log"
+  in_file = "duns.in"
+
+                                        ' Start with no errors, warnings.
+                                        ' We've processed no records, and 
+                                        '  skipped none
+  num_error = 0
+  num_warn = 0
+  num_processed = 0 
+  num_ignored = 0
+End Sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Main program
+'
+' Copyright (C) 1998. First Choice Software. All Rights Reserved.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub duns_interface()  
+  Dim ret_val     As Integer            ' Return value
+  Dim in_line     As String             ' Input line read from input file
+  Dim t_pos       As Integer            ' Parsing location
+  Dim t_pos2      As Integer            ' Parsing location
+  Dim line_num    As Integer            ' Line number in input file
+  Dim t_ret       As New BulkRetrieve   ' Structure for DB query
+  Dim site_list   As List               ' List of sites from DB query
+  Dim site_rec    As Record             ' Site record from DB query
+  Dim active_flag As Integer            ' Is a site active?
+  Dim t_save      As New BulkSave       ' Structure for writing to the DB
+  Dim masters     As New List           ' List of master site records
+  Dim master_rec  As Record             ' Master record for aliasing
+  Dim t_int       As Integer            ' Looping integer
+  Dim mast_row    As Integer            ' Row number of master (temp variable)
+
+                                        ' Variables parsed from input line
+  Dim site_id     As String             ' Next site_id
+  Dim duns_num    As String             ' Duns number for the site
+
+                                        ' Initialize variables
+                                        ' Make sure needed files are there
+                                        ' If all are not, error and leave
+  init_vars
+  ret_val = check_files()
+  If ret_val < 0 Then 
+     print_err_msg ret_val
+     Goto end_it
+  End If
+
+                                        ' Initialize the list
+  masters.ItemType = "Record"
+
+
+                                        ' Start with the first line
+                                        ' Read all lines in the file
+                                        ' Get line and parse
+  line_num = 1
+  While Not EOF(1)
+                                        ' If any parsing errors, trap and
+                                        '  continue
+                                        ' Find the delimiter
+                                        ' If there's another (too many fields, error)
+    On Error Goto error_in_parse
+    Line Input #1, in_line
+    t_pos = Instr(in_line, "|")
+    t_pos2 = Instr(t_pos + 1, in_line, "|")
+    If t_pos2 > 0 Then Goto error_in_parse
+
+                                        ' Get the site_id and duns number
+                                        ' Clear the error trap
+    site_id = Trim$(Mid$(in_line, 1, t_pos - 1))
+    duns_num = Trim$(Mid$(in_line, t_pos + 1, Len(in_line) - t_pos))
+    On Error Goto 0
+
+                                        ' Make sure duns number is valid
+                                        ' If not, error and leave
+    If Len(duns_num) > 9 Then
+      err_string = duns_num
+      print_warn_msg -1, line_num, True
+      badrec_msg in_line
+      Goto next_line
+    End If
+
+                                        ' Validate the site_id. Find it in the
+                                        ' DB. If not found, warning.
+    t_ret.Clear
+    t_ret.SimpleQuery 0, "site"
+    t_ret.AppendFilter 0, "site_id", cbEqual, site_id
+    t_ret.RetrieveRecords
+    Set site_list = t_ret.GetRecordList(0)
+    If site_list.Count = 0 Then
+       err_string = site_id
+       print_warn_msg -2, line_num, True
+       badrec_msg in_line
+       Goto next_line
+    End If
+
+                                        ' Get the site record
+                                        ' Update the duns number
+                                        ' We can only mark active sites
+                                        '  as master/alias sites
+    Set site_rec = site_list.ItemByIndex(0)
+    t_save.UpdateRecord site_rec
+    site_rec.SetField "x_duns_no", duns_num
+    active_flag = site_rec.GetField("status")
+    If active_flag > 0 Then Goto next_line
+
+                                        ' See if this duns number was already found
+                                        ' If so, set this as an alias of the master
+                                        ' If not, make this a master
+    mast_row = masters.FindFirstIndex(duns_num, "x_duns_no")
+    If mast_row >= 0 Then
+       Set master_rec = masters.ItemByIndex(mast_row)
+       site_rec.SetField "x_objid_master", master_rec.GetField("objid")
+       master_rec.SetField "x_objid_master", 1
+       t_save.UpdateRecord master_rec
+       t_save.RelateRecords site_rec, master_rec, "alias2site"
+    Else
+       masters.AppendItem site_rec
+    End If
+
+                                        ' Mark that another was done
+                                        ' Continue on
+    num_processed = num_processed + 1
+    Goto next_line
+error_in_parse:
+
+                                        ' If parsing error...
+                                        ' Clear error trap, put out warning
+                                        '  and bad record
+    On Error Goto 0
+    err = -1
+    print_warn_msg -3, line_num, True
+    badrec_msg in_line
+next_line:
+
+                                        ' Move on to next line
+                                        ' When done, close input file
+                                        ' Commit changes to the database
+    line_num = line_num + 1
+  Wend
+  Close #1
+  t_save.Save
+
+
+end_it:
+                                        ' Print end of status file
+  status_msg "Interface completed."
+  Print #3, 
+  Print #3, "Results of interface:"
+  Print #3, "---------------------"
+  Print #3, 
+  Print #3, "Records processed:" + Str$(num_processed)
+  Print #3, "Records ignored  :" + Str$(num_ignored)
+  Print #3, 
+  Print #3, "Errors found     :" + Str$(num_error)
+  Print #3, "Warnings found   :" + Str$(num_warn)
+
+                                        'Close all files
+  Close #3
+  Close #4
+  Close #5
+  Close #6  
+End Sub

@@ -1,0 +1,1380 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  fcMerge
+'                                                                           
+' Name           :  employee_merge.cbs                                           
+'                                                                           
+' Description     :  Performs 'merge' process. Callable by GUI or cbbatch.       
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  2005 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' 
+' To add a new relation to be processed, there are 5 places in the code that 
+' need to be modified
+' 
+' 1. Modify the empMetrics User Defined Type
+'    example: iMyRelation as Long
+' 2. Initialize this element of the empMetrics UDT in the EmployeeMetricsInit 
+'    subroutine
+'    example: emp.iMyRelation = 0
+' 3. Add this element of the empMetrics UDT to the print footer in the 
+'    EmployeeFooterPrint subroutine. example: 
+'    MergeLog Trim$(str$(sMetrics.iMyRelation)) + " my description" + strMsg
+' 4. Add this relation to the BulkRetrieve in the EmployeeMergeAlias subroutine
+'    example: Retrieve bulkRet,brLevel,"my_relation_from_employee_table"
+' 5. Reassign/Process this relation in the EmployeeMergeAlias subroutine
+' 
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Type empMetrics
+  bMerge as Boolean
+  iSchemaRev as Integer
+  bVerbose as Boolean
+  iAlias as Long
+  iActEntry as Long
+  iCloseCase as Long
+  iCommitLog as Long
+  iEAddr as Long
+  iEmployeeSupervisor as Long
+  iOnsiteLog as Long
+  iPhoneLog as Long
+  iPerson as Long
+  iPrimaryProductBin as Long
+  iBackupProductBin as Long
+  iSchedule as Long   
+  iScriptRun as Long 
+  iSupportPersonSite as Long
+  iAltSupportPersonSite as Long
+  iSupportPersonSitePart as Long
+  iBackupPersonSitePart as Long
+  iSubcase as Long
+  iTimeBomb as Long
+
+  iUserActEntry as Long
+  iUserAcdCall as Long  
+  iUserAgent as Long  
+  iUserAlert as Long  
+  iUserBugOriginator as Long  
+  iUserBugOwner as Long  
+  iUserCallScript as Long  
+  iUserCampaign as Long  
+  iUserCaseOwner as Long  
+  iUserCaseOriginator as Long  
+  iUserClsFactory as Long  
+  iUserCommitLog as Long  
+  iUserContractOwner as Long  
+  iUserContractAdmin as Long  
+  iUserContractOriginator as Long  
+  iUserDemandDetailOriginator as Long  
+  iUserDemandDetailOwner as Long  
+  iUserDemandHeaderOwner as Long  
+  iUserDialogueOriginator as Long  
+  iUserDialogueOwner as Long  
+  iUserDispatchFE as Long  
+  iUserExcUsrRole as Long  
+  iUserExchLog as Long  
+  iUserFcsHeader as Long  
+  iUserFilterset as Long  
+  iUserForecastItem as Long  
+  iUserForecastTarget as Long  
+  iUserInteract as Long  
+  iUserInvCountTrial as Long  
+  iUserInvCountRecounted as Long  
+  iUserInvCountEntered as Long  
+  iUserInvCountInit as Long  
+  iUserInvCountCounted as Long  
+  iUserJobOwner as Long  
+  iUserJobOriginator as Long  
+  iUserLeadOriginator as Long  
+  iUserLeadOwner as Long  
+  iUserLeadModifier as Long  
+  iUserLitReqOwner as Long  
+  iUserLitReqOriginator as Long  
+  iUserNBreakPoints as Long  
+  iUserNWatches as Long  
+  iUserNotesLogOriginator as Long  
+  iUserOnsiteLogOriginator as Long  
+  iUserOpportunityOriginator as Long  
+  iUserOpportunityOwner as Long  
+  iUserOpportunityViewer as Long  
+  iUserPartTransOwner as Long  
+  iUserPartUsed as Long  
+  iUserPhoneLogOriginator as Long  
+  iUserPreference as Long  
+  iUserPriceInstModifier as Long  
+  iUserPriceInstOriginator as Long  
+  iUserProbdescOwner as Long  
+  iUserProbdescOriginator as Long  
+  iUserProcInstOwner as Long  
+  iUserQryGrpOwner as Long  
+  iUserQualUser as Long  
+  iUserQueryOriginator as Long  
+  iUserQuickQuote as Long  
+  iUserRejectMessage as Long  
+  iUserResearchLogOriginator as Long  
+  iUserRptParem as Long  
+  iUserRsrc as Long  
+  iUserScriptRun as Long  
+  iUserSearchControl as Long  
+  iUserSearchLimits as Long  
+  iUserServerStats as Long  
+  iUserShipParts as Long  
+  iUserStatusChangeOriginator as Long  
+  iUserSubcaseOriginator as Long  
+  iUserSubcaseOwner as Long  
+  iUserTaskOwner as Long  
+  iUserTaskOriginator as Long  
+  iUserTemplate as Long  
+  iUserTransRecord as Long  
+  iUserTrend as Long  
+  iUserUserTouch as Long  
+  iUserUsrBusRole as Long  
+  iUserUsrOppRole as Long  
+  iUserUsrTerRole as Long  
+  iUserWebUser as Long  
+  iUserWipbinOwner as Long  
+  iUserWipbinDefault as Long  
+  iUserXFilterSet as Long  
+  iUserFrameworkAgreement as Long  
+  iUserOffering as Long  
+  iUserProcessAuthor as Long  
+  iUserSession as Long  
+  iUserShiftSession as Long  
+  iUserSESessionCreator as Long  
+  iUserSESessionOwner as Long  
+  iUserQueueMember as Long
+  iUserQueueSupervisor as Long
+
+End Type
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Declare Public Sub Process(sMetrics as empMetrics,bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,metric as Long)
+Declare Public Sub ProcessRole(sMetrics As empMetrics, bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,imetric as Long,view_name as String,user_objid_field as String, object_objid_field as String)
+Declare Public Sub ProcessMTM(sMetrics As empMetrics, bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,imetric as Long)
+Declare Sub EmployeeMergeAlias(recMaster As Record, recAlias As Record, sMetrics As empMetrics)
+Declare Sub MergeLog(strLog As String)
+Declare Sub ObjectReassign(sMetrics As empMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+Declare Sub ObjectReassignAlert(sMetrics As empMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+Declare Sub EmployeeMerge()
+Declare Sub EmployeeMergeMaster(master_rec As Record, sMetrics As empMetrics)
+Declare Sub EmployeeMergeAlias(recMaster As Record, recAlias As Record, sMetrics As empMetrics)
+Declare Sub EmployeeFooterPrint(sMetrics As empMetrics)
+
+Declare Sub MergeErrorExit(strMsg As String)
+Declare Sub EmployeeMetricsInit(sMetrics As empMetrics)
+Declare Sub MergeLogOpen(bMerge As Boolean)
+Declare Sub MergeLog(strLog As String)
+Declare Sub MergeLogClose()
+Declare Sub EmployeeHeaderPrint(sMetrics As empMetrics)
+Declare Function MergeConfigItem(strItem As String) As String
+Declare Function FetchSchemaRev() As Integer
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' User defined Types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Type adp_db_header_record
+  schema_rev As integer
+End Type
+
+Type relations
+  rel_name as String
+End Type
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module globals
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Dim bMergeGUI As Boolean
+Dim iLogFD        As Integer
+Global strFile    As String
+Dim dummyRel      As relations
+Dim lstRelations  As List
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Constants
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Const d_p as Boolean = False
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeMetricsInit() - Initialize metrics
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeMetricsInit(sMetrics As empMetrics)
+  sMetrics.bMerge = False
+  sMetrics.iSchemaRev = FetchSchemaRev()
+  sMetrics.iAlias = 0
+  sMetrics.bVerbose = True
+  sMetrics.iAlias  = 0
+  sMetrics.iActEntry  = 0
+  sMetrics.iCloseCase  = 0
+  sMetrics.iCommitLog  = 0
+  sMetrics.iEAddr  = 0
+  sMetrics.iEmployeeSupervisor  = 0
+  sMetrics.iOnsiteLog  = 0
+  sMetrics.iPhoneLog  = 0
+  sMetrics.iPerson  = 0
+  sMetrics.iPrimaryProductBin  = 0
+  sMetrics.iBackupProductBin  = 0
+  sMetrics.iSchedule  = 0   
+  sMetrics.iScriptRun  = 0 
+  sMetrics.iSupportPersonSite  = 0
+  sMetrics.iAltSupportPersonSite  = 0
+  sMetrics.iSupportPersonSitePart  = 0
+  sMetrics.iBackupPersonSitePart  = 0
+  sMetrics.iSubcase  = 0
+  sMetrics.iUserActEntry = 0
+  sMetrics.iTimeBomb = 0
+
+  sMetrics.iUserAcdCall = 0  
+  sMetrics.iUserAgent = 0  
+  sMetrics.iUserAlert = 0  
+  sMetrics.iUserBugOriginator = 0  
+  sMetrics.iUserBugOwner = 0  
+  sMetrics.iUserCallScript = 0  
+  sMetrics.iUserCampaign = 0  
+  sMetrics.iUserCaseOwner = 0  
+  sMetrics.iUserCaseOriginator = 0  
+  sMetrics.iUserClsFactory = 0  
+  sMetrics.iUserCommitLog = 0  
+  sMetrics.iUserContractOwner = 0  
+  sMetrics.iUserContractAdmin = 0  
+  sMetrics.iUserContractOriginator = 0  
+  sMetrics.iUserDemandDetailOriginator = 0  
+  sMetrics.iUserDemandDetailOwner = 0  
+  sMetrics.iUserDemandHeaderOwner = 0  
+  sMetrics.iUserDialogueOriginator = 0  
+  sMetrics.iUserDialogueOwner = 0  
+  sMetrics.iUserDispatchFE = 0  
+  sMetrics.iUserExcUsrRole = 0  
+  sMetrics.iUserExchLog = 0  
+  sMetrics.iUserFcsHeader = 0  
+  sMetrics.iUserFilterset = 0  
+  sMetrics.iUserForecastItem = 0  
+  sMetrics.iUserForecastTarget = 0  
+  sMetrics.iUserInteract = 0  
+  sMetrics.iUserInvCountTrial = 0  
+  sMetrics.iUserInvCountRecounted = 0  
+  sMetrics.iUserInvCountEntered = 0  
+  sMetrics.iUserInvCountInit = 0  
+  sMetrics.iUserInvCountCounted = 0  
+  sMetrics.iUserJobOwner = 0  
+  sMetrics.iUserJobOriginator = 0  
+  sMetrics.iUserLeadOriginator = 0  
+  sMetrics.iUserLeadOwner = 0  
+  sMetrics.iUserLeadModifier = 0  
+  sMetrics.iUserLitReqOwner = 0  
+  sMetrics.iUserLitReqOriginator = 0  
+  sMetrics.iUserNBreakPoints = 0  
+  sMetrics.iUserNWatches = 0  
+  sMetrics.iUserNotesLogOriginator = 0  
+  sMetrics.iUserOnsiteLogOriginator = 0  
+  sMetrics.iUserOpportunityOriginator = 0  
+  sMetrics.iUserOpportunityOwner = 0  
+  sMetrics.iUserOpportunityViewer = 0  
+  sMetrics.iUserPartTransOwner = 0  
+  sMetrics.iUserPartUsed = 0  
+  sMetrics.iUserPhoneLogOriginator = 0  
+  sMetrics.iUserPreference = 0  
+  sMetrics.iUserPriceInstModifier = 0  
+  sMetrics.iUserPriceInstOriginator = 0  
+  sMetrics.iUserProbdescOwner = 0  
+  sMetrics.iUserProbdescOriginator = 0  
+  sMetrics.iUserProcInstOwner = 0  
+  sMetrics.iUserQryGrpOwner = 0  
+  sMetrics.iUserQualUser = 0  
+  sMetrics.iUserQueryOriginator = 0  
+  sMetrics.iUserQuickQuote = 0  
+  sMetrics.iUserRejectMessage = 0  
+  sMetrics.iUserResearchLogOriginator = 0  
+  sMetrics.iUserRptParem = 0  
+  sMetrics.iUserRsrc = 0  
+  sMetrics.iUserScriptRun = 0  
+  sMetrics.iUserSearchControl = 0  
+  sMetrics.iUserSearchLimits = 0  
+  sMetrics.iUserServerStats = 0  
+  sMetrics.iUserShipParts = 0  
+  sMetrics.iUserStatusChangeOriginator = 0  
+  sMetrics.iUserSubcaseOriginator = 0  
+  sMetrics.iUserSubcaseOwner = 0  
+  sMetrics.iUserTaskOwner = 0  
+  sMetrics.iUserTaskOriginator = 0  
+  sMetrics.iUserTemplate = 0  
+  sMetrics.iUserTransRecord = 0  
+  sMetrics.iUserTrend = 0  
+  sMetrics.iUserUserTouch = 0  
+  sMetrics.iUserUsrBusRole = 0  
+  sMetrics.iUserUsrOppRole = 0  
+  sMetrics.iUserUsrTerRole = 0  
+  sMetrics.iUserWebUser = 0  
+  sMetrics.iUserWipbinOwner = 0  
+  sMetrics.iUserWipbinDefault = 0  
+  sMetrics.iUserXFilterSet = 0  
+  sMetrics.iUserFrameworkAgreement = 0  
+  sMetrics.iUserOffering = 0  
+  sMetrics.iUserProcessAuthor = 0  
+  sMetrics.iUserSession = 0  
+  sMetrics.iUserShiftSession = 0  
+  sMetrics.iUserSESessionCreator = 0  
+  sMetrics.iUserSESessionOwner = 0  
+  sMetrics.iUserQueueMember = 0
+  sMetrics.iUserQueueSupervisor = 0
+
+End Sub  
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeHeaderPrint() - Print report header
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeHeaderPrint(sMetrics As empMetrics)
+  Dim strBanner As String
+  
+  strBanner=Environ$("FC_BANNER")
+  
+  MergeLog "------------------------------------------------------"
+  If strBanner <> "" Then
+    MergeLog strBanner
+  End If
+  MergeLog "RUN BY " + app.userName
+  MergeLog "RUN FROM " + iif(bMergeGUI, "GUI", "merge.sh")
+  MergeLog "START " + trim$(App.CurrentDate)
+  MergeLog "MODE " + iif(sMetrics.bMerge, "merge", "preview")
+  MergeLog "SCHEMA REVISION " + trim$(str$(sMetrics.iSchemaRev))
+  MergeLog "------------------------------------------------------"
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeFooterPrint() - Print report footer
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeFooterPrint(sMetrics As empMetrics)
+  Dim strMsg As String
+
+  MergeLog "------------------------------------------------------"
+  MergeLog "Metrics:"
+  MergeLog ""
+
+  strMsg = Iif(sMetrics.bMerge, " have been processed.", " to be processed.")
+
+  MergeLog Trim$(str$(sMetrics.iAlias)) + " employee aliases" + strMsg
+
+  MergeLog Trim$(str$(sMetrics.iActEntry)) + " employee activity logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iCloseCase)) + " close_case" + strMsg
+  MergeLog Trim$(str$(sMetrics.iCommitLog)) + " commit logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iEAddr)) + " e_addr" + strMsg
+  MergeLog Trim$(str$(sMetrics.iEmployeeSupervisor)) + " employee supervisors" + strMsg
+  MergeLog Trim$(str$(sMetrics.iOnsiteLog)) + " onsite_logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPhoneLog)) + " phone_logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPerson)) + " persons" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPrimaryProductBin)) + " product bins (primary support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iBackupProductBin)) + " product bins (backup support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSchedule)) + " schedule" + strMsg
+  MergeLog Trim$(str$(sMetrics.iScriptRun)) + " scr_run" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSupportPersonSite)) + " site (support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAltSupportPersonSite)) + " site (alternate support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSupportPersonSitePart)) + " site parts (support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iBackupPersonSitePart)) + " site parts (backup support employee for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSubcase)) + " subcase (creator for)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iTimeBomb)) + " time bombs" + strMsg
+
+  MergeLog Trim$(str$(sMetrics.iUserActEntry)) + " user activity logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserAcdCall)) + " acd calls" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserAgent)) + " agents" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserAlert)) + " alerts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserBugOriginator)) + " bugs (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserBugOwner)) + " bugs (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserCallScript)) + " user call scripts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserCampaign)) + " campaigns" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserCaseOwner)) + " cases (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserCaseOriginator)) + " cases (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserClsFactory)) + " cls_factory" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserCommitLog)) + " commit logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserContractOwner)) + " contracts (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserContractAdmin)) + " contracts (admin)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserContractOriginator)) + " contracts (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDemandDetailOriginator)) + " part request details (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDemandDetailOwner)) + " part request details (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDemandHeaderOwner)) + " part request headers (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDialogueOriginator)) + " dialogues (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDialogueOwner)) + " dialogues (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserDispatchFE)) + " dispatch FEs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserExcUsrRole)) + " exc_usr_roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserExchLog)) + " exch_logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserFcsHeader)) + " fcs headers" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserFilterset)) + " filtersets" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserForecastItem)) + " forecast items" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserForecastTarget)) + " forecast targets" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInteract)) + " interactions" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInvCountTrial)) + " inventory counts (trial)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInvCountRecounted)) + " inventory counts (recounted)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInvCountEntered)) + " inventory counts (entered)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInvCountInit)) + " inventory counts (initialized)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserInvCountCounted)) + " inventory counts (counted)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserJobOwner)) + " jobs (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserJobOriginator)) + " jobs (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserLeadOriginator)) + " leads (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserLeadOwner)) + " leads (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserLeadModifier)) + " leads (modifier)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserLitReqOwner)) + " literature requests (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserLitReqOriginator)) + " literature requests (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserNBreakPoints)) + " N_BreakPoints" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserNWatches)) + " N_Watches" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserNotesLogOriginator)) + " notes logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserOnsiteLogOriginator)) + " onsite logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserOpportunityOriginator)) + " opportunities (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserOpportunityOwner)) + " opportunities (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserOpportunityViewer)) + " opportunities (viewer)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPartTransOwner)) + " part transactions" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPartUsed)) + " part used transactions" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPhoneLogOriginator)) + " phone logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPreference)) + " preferences" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPriceInstModifier)) + " price instances (modified)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserPriceInstOriginator)) + " price instances (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserProbdescOwner)) + " solutions (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserProbdescOriginator)) + " solutions (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserProcInstOwner)) + " process instances" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQryGrpOwner)) + " query groups" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQualUser)) + " sharing rule qualifier" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQueryOriginator)) + " queries" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQuickQuote)) + " quotes" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserRejectMessage)) + " reject messages" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserResearchLogOriginator)) + " research logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserRptParem)) + " report parameters" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserRsrc)) + " resources" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserScriptRun)) + " script runs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSearchControl)) + " search controls" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSearchLimits)) + " search limits" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserServerStats)) + " server stats" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserShipParts)) + " ship parts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserStatusChangeOriginator)) + " status changes" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSubcaseOriginator)) + " subcases (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSubcaseOwner)) + " subcases (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserTaskOwner)) + " tasks (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserTaskOriginator)) + " tasks (originator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserTemplate)) + " templates" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserTransRecord)) + " trans records" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserTrend)) + " trends" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserUserTouch)) + " user touches" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserUsrBusRole)) + " usr_bus_roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserUsrOppRole)) + " usr_opp_roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserUsrTerRole)) + " usr_ter_roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserWebUser)) + " web users" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserWipbinOwner)) + " wipbins (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserWipbinDefault)) + " wipbins (default)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserXFilterSet)) + " Xfiltersets" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserFrameworkAgreement)) + " framework agreements" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserOffering)) + " offerings" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserProcessAuthor)) + " process instances" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSession)) + " sessions" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserShiftSession)) + " shift notes" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSESessionCreator)) + " se_sessions (creator)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserSESessionOwner)) + " se_sessions (owner)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQueueMember)) + " queues (member of)" + strMsg
+  MergeLog Trim$(str$(sMetrics.iUserQueueSupervisor)) + " queues (supervisor of)" + strMsg
+
+  MergeLog "------------------------------------------------------"   
+  MergeLog "END " + Trim$(App.CurrentDate)
+  MergeLog "------------------------------------------------------"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeObjectReassign() - Generic routine to reassign a contact or site
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeObjectReassign(sMetrics As empMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim j         As Long
+  Dim strVerb   As String
+
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, strRel)
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " " + strActionDesc + " to be processed."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = ".... " & Iif(sMetrics.bMerge, strVerbMerge, strVerbPreview)
+    MergeLog strVerb + " " + strActionDesc + " " + Trim$(Str$(recObject.GetField("objid")))
+    If sMetrics.bMerge Then
+      bulkSav.RelateRecords recMaster, recObject, strRel
+    End If
+    iMetric = iMetric + 1
+  Next j                                       
+End Sub
+  
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeObjectReassignmtm() - Generic routine to reassign a contact or site for MTMs
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeObjectReassignMtm(sMetrics As empMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                      recMaster As Record, recAlias As Record, strRel As String, _
+                      strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                      iMetric As Long)
+
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim j         As Long
+  Dim strVerb   As String
+
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, strRel)
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " " + strActionDesc + " to be processed."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = ".... " & Iif(sMetrics.bMerge, strVerbMerge, strVerbPreview)
+    MergeLog strVerb + " " + strActionDesc + " " + Trim$(Str$(recObject.GetField("objid")))
+    If sMetrics.bMerge Then
+      bulkSav.RelateRecords recMaster, recObject, strRel
+      bulkSav.UnRelateRecords recAlias, recobject, strRel
+    End If
+    iMetric = iMetric + 1
+  Next j                                       
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' retrieve - retrieve related employee data, following the given traversal
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub Retrieve (bulkRet as BulkRetrieve,brLevel as Integer,rel_name as String)
+	 If lstRelations.Contains(rel_name) Then
+		  bulkRet.TraverseFromParent brLevel,rel_name,2
+		  brLevel = brLevel + 1        
+	 End If     
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeMergeAlias() - Run merge report or perform merge
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeMergeAlias(recMaster As Record, recAlias As Record, sMetrics As empMetrics)
+  Dim bulkRet   As New BulkRetrieve
+  Dim bulkSav   As BulkSave
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim lstOther  As List
+  Dim recOther  As Record
+  Dim strVerb   As String
+  Dim t_list    As List
+  Dim t_list2   As List
+  Dim gbst_rec  As Record
+  Dim do_act    As Boolean
+  Dim n_act_rec As Record
+  Dim recAliasUser as Record
+  Dim recMasterUser as Record
+
+  Dim i         As Long
+  Dim j         As Long    
+  
+  Dim recActEntry As new Record
+  Dim lstActCode  As List
+  Dim recActCode  As Record
+
+  Dim role_ret    As New BulkRetrieve
+  Dim role_list   As List
+  Dim role_rec    As Record
+  Dim master_role_rec As Record
+  Dim marker      As Long
+  Dim offset      As Integer
+  Dim bin_list    As List
+  Dim mst_deinst  As Record
+  Dim is_mst_deinst As Boolean
+  Dim bin_rec     As Record
+  Dim brLevel     As Integer
+  
+                                        ' Get the config items needed and the gbst_elm
+                                        '  record for the act_entry
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "config_itm"
+  bulkRet.AppendFilter 0, "name", cbEqual, "FC Merge Add Activity"
+  bulkRet.SimpleQuery 1, "gbst_elm"
+  bulkRet.AppendFilter 1, "rank", cbEqual, 90363
+  bulkRet.RetrieveRecords
+  
+                                        ' Get each item, and save it.
+  Set t_list = bulkRet.GetRecordList(0)
+  If t_list.Count = 0 Then
+     'Config Item not found
+		    MergeLog "ERROR - Unable to find Config Item: 'FC Merge Add Activity'" 
+			  SMetrics.BMerge = False
+        MergeErrorExit Basic.EOLN$ & "ERROR - Unable to find Config Item: 'FC Merge Add Activity'" & Basic.EOLN$
+			  Exit Sub
+  End If
+  Set gbst_rec = t_list.ItemByIndex(0)
+  do_act = gbst_rec.GetField("i_value") = 1
+  Set t_list = bulkRet.GetRecordList(1)
+  If t_list.Count = 0 Then
+     'Activity Code not found
+		    MergeLog "ERROR - Unable to find Activity Code with rank = 90363 " 
+			  SMetrics.BMerge = False
+        MergeErrorExit Basic.EOLN$ & "Unable to find Activity Code with rank = 90363" & Basic.EOLN$
+			  Exit Sub
+  End If
+  Set gbst_rec = t_list.ItemByIndex(0)
+
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "employee"
+  bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
+  bulkRet.SimpleQuery 1, "employee"
+  bulkRet.AppendFilter 1, "objid", cbEqual, recMaster.GetField("objid")
+
+  bulkRet.TraverseFromParent  2, "employee2user", 0          
+  bulkRet.TraverseFromParent  3, "employee2user", 1    
+  bulkRet.TraverseFromParent  4, "closer2close_case", 0          'OTM
+  bulkRet.TraverseFromParent  5, "solver2commit_log", 0          'OTM
+  bulkRet.TraverseFromParent  6, "employee2e_addr", 0            'OTM
+  bulkRet.TraverseFromParent  7, "supvr2employee", 0             'OTM
+  bulkRet.TraverseFromParent  8, "employee2onsite_doer", 0       'OTM
+  bulkRet.TraverseFromParent  9, "intcontact2phone_log", 0       'OTM
+  bulkRet.TraverseFromParent 10, "primary2productbin", 0         'OTM
+  bulkRet.TraverseFromParent 11, "backup2productbin", 0          'OTM
+  bulkRet.TraverseFromParent 12, "employee2schedule", 0          'OTM
+  bulkRet.TraverseFromParent 13, "employee2scr_run", 0           'OTM
+  bulkRet.TraverseFromParent 14, "supp_person2site", 0           'OTM
+  bulkRet.TraverseFromParent 15, "altsupp_person2site", 0        'OTM
+  bulkRet.TraverseFromParent 16, "primary2site_part", 0          'OTM
+  bulkRet.TraverseFromParent 17, "backup2site_part", 0           'OTM
+  bulkRet.TraverseFromParent 18, "creator2subcase", 0            'OTM
+  bulkRet.TraverseFromParent 19, "empl2person", 0                'OTOF
+  bulkRet.TraverseFromParent 20, "employee2act_entry", 0         'OTM
+  bulkRet.TraverseFromParent 21, "emp_cmits2time_bomb", 0        'OTM
+
+  brLevel = 22
+
+	Retrieve bulkRet,brLevel,"originator2act_entry"
+	Retrieve bulkRet,brLevel,"user_access2acd_call"
+	Retrieve bulkRet,brLevel,"user2agent"
+	Retrieve bulkRet,brLevel,"user2alert"
+	Retrieve bulkRet,brLevel,"user2asaf_result"
+	Retrieve bulkRet,brLevel,"originator2bug"
+	Retrieve bulkRet,brLevel,"owner2bug"
+	Retrieve bulkRet,brLevel,"orig2call_script"
+	Retrieve bulkRet,brLevel,"curr_owner2campaign"
+	Retrieve bulkRet,brLevel,"curr_owner2case"
+	Retrieve bulkRet,brLevel,"originator2case"
+	Retrieve bulkRet,brLevel,"owner2cls_factory"
+	Retrieve bulkRet,brLevel,"originator2commit_log"
+	Retrieve bulkRet,brLevel,"user_prefs2config_itm"
+	Retrieve bulkRet,brLevel,"employees2contact"
+	Retrieve bulkRet,brLevel,"owner2contract"
+	Retrieve bulkRet,brLevel,"admin2contract"
+	Retrieve bulkRet,brLevel,"originator2contract"
+	Retrieve bulkRet,brLevel,"user2dataset"
+	Retrieve bulkRet,brLevel,"user2user_setting"
+	Retrieve bulkRet,brLevel,"originator2demand_dtl"
+	Retrieve bulkRet,brLevel,"curr_owner2demand_dtl"
+	Retrieve bulkRet,brLevel,"curr_owner2demand_hdr"
+	Retrieve bulkRet,brLevel,"originator2dialogue"
+	Retrieve bulkRet,brLevel,"curr_owner2dialogue"
+	Retrieve bulkRet,brLevel,"originator2disptchfe"
+	Retrieve bulkRet,brLevel,"user2srvr"
+	Retrieve bulkRet,brLevel,"user2employee"
+	Retrieve bulkRet,brLevel,"originator2escalation"
+	Retrieve bulkRet,brLevel,"user2exc_usr_role"
+	Retrieve bulkRet,brLevel,"user2exch_log"
+	Retrieve bulkRet,brLevel,"curr_owner2fcs_used"
+	Retrieve bulkRet,brLevel,"curr_owner2fcs_header"
+	Retrieve bulkRet,brLevel,"originator2filterset"
+	Retrieve bulkRet,brLevel,"originator2frcst_itm"
+	Retrieve bulkRet,brLevel,"user2frcst_target"
+	Retrieve bulkRet,brLevel,"user_access2group"
+	Retrieve bulkRet,brLevel,"user2interact"
+	Retrieve bulkRet,brLevel,"trial_by2inv_count"
+	Retrieve bulkRet,brLevel,"recounted_by2inv_count"
+	Retrieve bulkRet,brLevel,"entered_by2inv_count"
+	Retrieve bulkRet,brLevel,"init_by2inv_count"
+	Retrieve bulkRet,brLevel,"counted_by2inv_count"
+	Retrieve bulkRet,brLevel,"curr_owner2job"
+	Retrieve bulkRet,brLevel,"originator2job"
+	Retrieve bulkRet,brLevel,"lead_orig2lead"
+	Retrieve bulkRet,brLevel,"lead_owner2lead"
+	Retrieve bulkRet,brLevel,"lead_modifier2lead"
+	Retrieve bulkRet,brLevel,"lit_owner2lit_req"
+	Retrieve bulkRet,brLevel,"lit_orig2lit_req"
+	Retrieve bulkRet,brLevel,"curr_owner2loc_inq"
+	Retrieve bulkRet,brLevel,"user_access2monitor"
+	Retrieve bulkRet,brLevel,"supvr_default2monitor"
+	Retrieve bulkRet,brLevel,"supvr_access2monitor"
+	Retrieve bulkRet,brLevel,"user2N_Breakpoints"
+	Retrieve bulkRet,brLevel,"user2N_Watches"
+	Retrieve bulkRet,brLevel,"originator2notes_log"
+	Retrieve bulkRet,brLevel,"originator2onsite_log"
+	Retrieve bulkRet,brLevel,"originator2opportunity"
+	Retrieve bulkRet,brLevel,"owner2opportunity"
+	Retrieve bulkRet,brLevel,"viewer2opportunity"
+	Retrieve bulkRet,brLevel,"user2page_class"
+	Retrieve bulkRet,brLevel,"curr_owner2part_trans"
+	Retrieve bulkRet,brLevel,"assigned_eng2part_used"
+	Retrieve bulkRet,brLevel,"originator2phone_log"
+	Retrieve bulkRet,brLevel,"user2preference"
+	Retrieve bulkRet,brLevel,"modifier2price_inst"
+	Retrieve bulkRet,brLevel,"originator2price_inst"
+	Retrieve bulkRet,brLevel,"offline2privclass"
+	Retrieve bulkRet,brLevel,"user_access2privclass"
+	Retrieve bulkRet,brLevel,"curr_owner2probdesc"
+	Retrieve bulkRet,brLevel,"originator2probdesc"
+	Retrieve bulkRet,brLevel,"owner2proc_inst"
+	Retrieve bulkRet,brLevel,"curr_owner2qry_grp"
+	Retrieve bulkRet,brLevel,"user2qual_user"
+	Retrieve bulkRet,brLevel,"originator2query"
+	Retrieve bulkRet,brLevel,"user_assigned2queue"
+	Retrieve bulkRet,brLevel,"supvr_assigned2queue"
+	Retrieve bulkRet,brLevel,"editor2quick_quote"
+	Retrieve bulkRet,brLevel,"user2rc_config"
+	Retrieve bulkRet,brLevel,"rejector2reject_msg"
+	Retrieve bulkRet,brLevel,"originator2resrch_log"
+	Retrieve bulkRet,brLevel,"user_access2ripbin"
+	Retrieve bulkRet,brLevel,"user_access2rpt_param"
+	Retrieve bulkRet,brLevel,"user2rsrc"
+	Retrieve bulkRet,brLevel,"admin2scr_run"
+	Retrieve bulkRet,brLevel,"search_prefs2search_control"
+	Retrieve bulkRet,brLevel,"search_limits2search_limits"
+	Retrieve bulkRet,brLevel,"user2server_stats"
+	Retrieve bulkRet,brLevel,"shipped_by2ship_parts"
+	Retrieve bulkRet,brLevel,"originator2status_chg"
+	Retrieve bulkRet,brLevel,"originator2subcase"
+	Retrieve bulkRet,brLevel,"curr_owner2subcase"
+	Retrieve bulkRet,brLevel,"owner2task"
+	Retrieve bulkRet,brLevel,"originator2task"
+	Retrieve bulkRet,brLevel,"user2template"
+	Retrieve bulkRet,brLevel,"user2trans_record"
+	Retrieve bulkRet,brLevel,"user2trnd"
+	Retrieve bulkRet,brLevel,"user2user_touch"
+	Retrieve bulkRet,brLevel,"user2usr_bus_role"
+	Retrieve bulkRet,brLevel,"user2usr_opp_role"
+	Retrieve bulkRet,brLevel,"user2usr_ter_role"
+	Retrieve bulkRet,brLevel,"user2web_user"
+	Retrieve bulkRet,brLevel,"owner2wipbin"
+	Retrieve bulkRet,brLevel,"user_default2wipbin"
+	Retrieve bulkRet,brLevel,"originator2xfilterset"
+	Retrieve bulkRet,brLevel,"user2fr_agrmnt"
+	Retrieve bulkRet,brLevel,"user2offering"
+	Retrieve bulkRet,brLevel,"process_author2process"
+	Retrieve bulkRet,brLevel,"user2session"
+	Retrieve bulkRet,brLevel,"user2shft_sessn"
+	Retrieve bulkRet,brLevel,"creator2se_session"
+	Retrieve bulkRet,brLevel,"owner2se_session"
+
+	bulkRet.RetrieveRecords
+   
+
+  '
+  ' Get master & alias user records, and error trap for bad data
+  '
+  Set t_list = bulkRet.GetRecordList(2)
+  If t_list.Count = 0 Then
+     'No user record found for this employee
+		    MergeLog "ERROR - There is no employee record found for the alias user with objid = " _
+			  + CStr(recAlias.GetField("objid")) + _
+			  ". This MUST be repaired before employees can be merged."
+			  SMetrics.BMerge = False
+			  Exit Sub
+  End If
+  Set recAliasUser = t_list.ItemByIndex(0)
+
+  Set t_list = bulkRet.GetRecordList(3)
+  If t_list.Count = 0 Then
+     'No user record found for this employee
+		    MergeLog "ERROR - There is no employee record found for the master user with objid = " _
+			  + CStr(recMaster.GetField("objid")) + _
+			  ". This MUST be repaired before employees can be merged."
+			  SMetrics.BMerge = False
+			  Exit Sub
+  End If
+  Set recMasterUser = t_list.ItemByIndex(0)
+
+  '
+  ' New bulk save for each alias
+  '
+  Set bulkSav = New BulkSave
+  
+  '
+  ' Process alias
+  '
+  MergeLog ""
+  MergeLog "Employee alias " + Trim$(Str$(recAlias.GetField("objid"))) + " " + _
+                 "(" + recAliasUser.GetField("login_name") + " - " + _
+                 recAlias.GetField("first_name") + " " +  _
+                 recAlias.GetField("last_name") + ")"
+
+  ' Get the marker from the alias
+  marker = recAlias.GetField("x_marked_by")
+  If marker = 0 Then
+     marker = App.UserObjid
+  End If
+                 
+  '
+  ' If they want an act_entry for the merge, do it.
+  '        
+  If sMetrics.bMerge And do_act Then
+     Set n_act_rec = New Record
+     n_act_rec.RecordType = "act_entry"
+     n_act_rec.SetField "act_code", 90363
+     n_act_rec.SetField "entry_time", App.CurrentDate
+     n_act_rec.SetField "addnl_info", _
+       "Employee alias " & _
+       recAliasUser.GetField("login_name") + " (" + _
+       recAlias.GetField("first_name") + " " + _
+       recAlias.GetField("last_name") + ") " + _
+       "merged into this employee."
+     bulkSav.InsertRecord n_act_rec
+     bulkSav.RelateRecords n_act_rec, gbst_rec, "entry_name2gbst_elm"
+     bulkSav.RelateRecords n_act_rec, recMaster, "act_entry2employee"
+     bulkSav.RelateRecordsToID n_act_rec, "user", marker, "act_entry2user"
+  End If
+
+  '
+  ' Make alias user/employee inactive
+  '
+  If sMetrics.bMerge Then
+    bulkSav.UpdateRecord recAlias
+    bulkSav.UpdateRecord recAliasUser
+    recAliasUser.SetField "status", 0   'inactive
+    recAlias.SetField "x_objid_master", 0
+    recAlias.SetField "x_marked_by", 0
+  End If
+  sMetrics.iAlias = sMetrics.iAlias + 1
+
+  
+  '
+  ' Log master for this alias
+  '               
+  MergeLog ".. Master employee " + Trim$(Str$(recMaster.getField("objid"))) + " " + _
+                 "(" + recMasterUser.GetField("login_name") + " - " + _
+                 recMaster.GetField("first_name") + " " + _
+                 recMaster.GetField("last_name") + ")"
+  If sMetrics.bMerge Then
+    bulksav.UpdateRecord recMaster
+    bulksav.UnRelateRecords recAlias, recMaster, "alias2employee"
+    recMaster.SetField "x_objid_master", 0
+  End If
+  
+  '
+  ' Process most of the OTMs for the employee alias
+  '
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "solver2commit_log", "commit log", "Reassigning", "To reassign", sMetrics.iCommitLog
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "employee2e_addr", "e_addr", "Reassigning", "To reassign", sMetrics.iEAddr
+
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "supvr2employee", "supervisor employee", "Reassigning", "To reassign", sMetrics.iEmployeeSupervisor
+  'If the master employee is to become a supervisor, make sure he is marked to be a supervisor.
+  Set t_list2 = bulkRet.GetRelatedRecordList(recAlias, "supvr2employee")
+  If sMetrics.bMerge AND t_list2.Count > 0 Then
+     recMaster.SetField "acting_supvr", 1
+     bulkSav.UpdateRecord recMaster
+  End If
+
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "employee2onsite_doer", "onsite_log", "Reassigning", "To reassign", sMetrics.iOnsiteLog
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "intcontact2phone_log", "phone_log", "Reassigning", "To reassign", sMetrics.iPhoneLog
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "primary2productbin", "primary product bin support employee", "Reassigning", "To reassign", sMetrics.iPrimaryProductBin 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "backup2productbin", "backup product bin support employee", "Reassigning", "To reassign", sMetrics.iBackupProductBin 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "employee2schedule", "schedule", "Reassigning", "To reassign", sMetrics.iSchedule 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "employee2scr_run", "script runs", "Reassigning", "To reassign", sMetrics.iScriptRun 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "supp_person2site", "site support employee", "Reassigning", "To reassign", sMetrics.iSupportPersonSite 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "altsupp_person2site", "alternate site support employee", "Reassigning", "To reassign", sMetrics.iAltSupportPersonSite 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "primary2site_part", "primary site part support employee", "Reassigning", "To reassign", sMetrics.iSupportPersonSitePart 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "backup2site_part", "backup site part support employee", "Reassigning", "To reassign", sMetrics.iBackupPersonSitePart 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "creator2subcase", "subcase creator", "Reassigning", "To reassign", sMetrics.iSubcase 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "employee2act_entry", "employee activity logs", "Reassigning", "To reassign", sMetrics.iActEntry 
+  EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "emp_cmits2time_bomb", "employee time bombs", "Reassigning", "To reassign", sMetrics.iTimeBomb
+
+  '
+  ' Don't reassign the relation to person, as its a OTO relation
+  '
+  'EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "empl2person", "person", "Reassigning", "To reassign", sMetrics.iPerson 
+
+  '
+  ' Process most of the OTMs for the user alias
+  '
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2act_entry", "user activity logs", sMetrics.iUserActEntry
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user_access2acd_call", "acd call", sMetrics.iUserAcdCall 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2agent", "agent" , sMetrics.iUserAgent 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2alert", "alert" , sMetrics.iUserAlert 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2bug", "bug (originator)" , sMetrics.iUserBugOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2bug", "bug (owner)" , sMetrics.iUserBugOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "orig2call_script", "call script" , sMetrics.iUserCallScript 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2campaign", "campaign" , sMetrics.iUserCampaign 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2case", "case (owner)" , sMetrics.iUserCaseOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2case", "case (originator)" , sMetrics.iUserCaseOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2cls_factory", "cls_factory" , sMetrics.iUserClsFactory 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2commit_log", "commit log" , sMetrics.iUserCommitLog 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2contract", "contract (owner)" , sMetrics.iUserContractOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "admin2contract", "contract (admin)" , sMetrics.iUserContractAdmin 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2contract", "contract (originator)" , sMetrics.iUserContractOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2demand_dtl", "pr detail (originator)" , sMetrics.iUserDemandDetailOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2demand_dtl", "pr detail (pwner)" , sMetrics.iUserDemandDetailOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2demand_hdr", "pr header (owner)" , sMetrics.iUserDemandHeaderOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2dialogue", "dialogue (originator)" , sMetrics.iUserDialogueOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2dialogue", "dialogue (owner)" , sMetrics.iUserDialogueOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2disptchfe", "dispatch fe" , sMetrics.iUserDispatchFE 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2exc_usr_role", "exch_usr_role" , sMetrics.iUserExcUsrRole 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2exch_log", "exch log" , sMetrics.iUserExchLog 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2fcs_header", "fcs header" , sMetrics.iUserFcsHeader 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2filterset", "filterset" , sMetrics.iUserFilterset 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2frcst_itm", "forecast item" , sMetrics.iUserForecastItem 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2frcst_target", "forecast target" , sMetrics.iUserForecastTarget 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2interact", "interaction" , sMetrics.iUserInteract 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "trial_by2inv_count", "inventory count (trial)" , sMetrics.iUserInvCountTrial 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "recounted_by2inv_count", "inventory count (recounted)" , sMetrics.iUserInvCountRecounted 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "entered_by2inv_count", "inventory count (entered)" , sMetrics.iUserInvCountEntered 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "init_by2inv_count", "inventory count (initialized)" , sMetrics.iUserInvCountInit 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "counted_by2inv_count", "inventory count (counted)" , sMetrics.iUserInvCountCounted 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2job", "job (owner)" , sMetrics.iUserJobOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2job", "job (originator)" , sMetrics.iUserJobOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "lead_orig2lead", "lead (originator)" , sMetrics.iUserLeadOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "lead_owner2lead", "lead (owner)" , sMetrics.iUserLeadOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "lead_modifier2lead", "lead (modifier)" , sMetrics.iUserLeadModifier 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "lit_owner2lit_req", "literature request (owner)" , sMetrics.iUserLitReqOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "lit_orig2lit_req", "literature request (originator)" , sMetrics.iUserLitReqOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2N_Breakpoints", "n_breakpoints" , sMetrics.iUserNBreakPoints 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2N_Watches", "n_watches" , sMetrics.iUserNWatches 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2notes_log", "notes log" , sMetrics.iUserNotesLogOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2onsite_log", "onsite log" , sMetrics.iUserOnsiteLogOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2opportunity", "opportunity (originator)" , sMetrics.iUserOpportunityOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2opportunity", "opportunity (owner)" , sMetrics.iUserOpportunityOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "viewer2opportunity", "opportunity (viewer)" , sMetrics.iUserOpportunityViewer 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2part_trans", "part transactions" , sMetrics.iUserPartTransOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "assigned_eng2part_used", "parts used" , sMetrics.iUserPartUsed 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2phone_log", "phone log" , sMetrics.iUserPhoneLogOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "modifier2price_inst", "price instance (modifier)" , sMetrics.iUserPriceInstModifier 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2price_inst", "price instance (originator)" , sMetrics.iUserPriceInstOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2probdesc", "solution (owner)" , sMetrics.iUserProbdescOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2probdesc", "solution (originator)" , sMetrics.iUserProbdescOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2proc_inst", "process instance" , sMetrics.iUserProcInstOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2qual_user", "qual user" , sMetrics.iUserQualUser 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "editor2quick_quote", "quote" , sMetrics.iUserQuickQuote 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "rejector2reject_msg", "reject message" , sMetrics.iUserRejectMessage 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2resrch_log", "research log" , sMetrics.iUserResearchLogOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user_access2rpt_param", "report parameter" , sMetrics.iUserRptParem 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "admin2scr_run", "script run" , sMetrics.iUserScriptRun 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2server_stats", "server stats" , sMetrics.iUserServerStats 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "shipped_by2ship_parts", "ship parts" , sMetrics.iUserShipParts 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2status_chg", "status change" , sMetrics.iUserStatusChangeOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2subcase", "subcase (originator)" , sMetrics.iUserSubcaseOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2subcase", "subcase (owner)" , sMetrics.iUserSubcaseOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2task", "task (owner)" , sMetrics.iUserTaskOwner 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2task", "task (originator)" , sMetrics.iUserTaskOriginator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2template", "template" , sMetrics.iUserTemplate 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2trans_record", "trans record" , sMetrics.iUserTransRecord 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2trnd", "trend" , sMetrics.iUserTrend 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2user_touch", "user touch" , sMetrics.iUserUserTouch 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2web_user", "web_user" , sMetrics.iUserWebUser 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2xfilterset", "xfilterset" , sMetrics.iUserXFilterSet 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"user2fr_agrmnt","framework agreements",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"user2offering","offerings",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"process_author2process","process instances",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"user2session","sessions",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"user2shft_sessn","session notes",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"creator2se_session","se_sessions (creator)",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser,"owner2se_session","se_sessions (owner)",sMetrics.iUserSESessionCreator 
+  Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2preference", "preference" , sMetrics.iUserPreference 
+
+  '
+  ' Process the Role Tables
+  '
+  ProcessRole sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2usr_bus_role", "user account roles" , sMetrics.iUserUsrBusRole, "sfa_acct_tm","user_objid","acct_objid"
+  ProcessRole sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2usr_ter_role", "user territory roles" , sMetrics.iUserUsrTerRole, "sfa_terr_tm","user_objid","terr_objid"
+  ProcessRole sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2usr_opp_role", "user opportunity roles" , sMetrics.iUserUsrOppRole, "sfa_opp_tm","user_objid","opp_objid"
+
+  '
+  ' Process the MTM relations:
+  '
+  ProcessMTM sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user_assigned2queue", "queue member" , sMetrics.iUserQueueMember
+  ProcessMTM sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "supvr_assigned2queue", "queue supervisor" , sMetrics.iUserQueueSupervisor
+
+  '
+  ' Don't reassign the relation to contact, as its a OTO relation
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "employees2contact", "contacts" , sMetrics.
+
+  '
+  ' Don't reassign the relation to employee, as its a OTO relation
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2employee", "?" , sMetrics.
+
+  '
+  ' Don't process the user config items; the master user already has his own set of config items
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user_prefs2config_itm", "config items" , sMetrics.
+
+  '
+  ' Don't process the FTS search preferences; the master user already has his own set of FTS preferences
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "search_prefs2search_control", "search control" , sMetrics.iUserSearchControl 
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "search_limits2search_limits", "search limits" , sMetrics.iUserSearchLimits 
+
+  '
+  ' Don't reassign the wipbins; the master user already has his own set of wipbins
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "owner2wipbin", "wipbin owner" , sMetrics.iUserWipbinOwner 
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user_default2wipbin", "default wipbin" , sMetrics.iUserWipbinDefault 
+
+  '
+  ' Don't reassign the queries or the query groups - the master user already has his own set of queries & query groups
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "originator2query", "query" , sMetrics.iUserQueryOriginator 
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "curr_owner2qry_grp", "query group" , sMetrics.iUserQryGrpOwner 
+
+  '
+  ' Don't reassign the resource - the master user will already be setup as a resource
+  ' and this would cause a unique index violation
+  '
+  'Process sMetrics,bulkRet,bulkSav,recMasterUser,recAliasUser, "user2rsrc", "resource" , sMetrics.iUserRsrc 
+
+
+  If sMetrics.bMerge Then
+    MergeLog ".. Commiting changes."
+    bulkSav.Save
+    MergeLog ".. Done."
+  End If  
+End Sub
+
+
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Process the related data, only of that relation is valid for this database
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Public Sub Process(sMetrics As empMetrics, bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,imetric as Long)
+  If lstRelations.Contains(rel_name) Then
+     EmployeeObjectReassign sMetrics, bulkRet, bulkSav, recMasterUser, recAliasUser, rel_name, desc, "Reassigning",  "To reassign", imetric
+  End if
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Process the related data, only of that relation is valid for this database
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Public Sub ProcessMTM(sMetrics As empMetrics, bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,imetric as Long)
+  If lstRelations.Contains(rel_name) Then
+     EmployeeObjectReassignMTM sMetrics, bulkRet, bulkSav, recMasterUser, recAliasUser, rel_name, desc, "Reassigning",  "To reassign", imetric
+  End if
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Process the related data for a role table
+' taking into account duplicate roles
+' Only process if that relation is valid for this database
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Public Sub ProcessRole(sMetrics As empMetrics, bulkRet as BulkRetrieve,bulkSav as BulkSave,recMasterUser as Record,recAliasUser as Record,rel_name as String,desc as String,imetric as Long,view_name as String,user_objid_field as String, object_objid_field as String)
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim j         As Long
+  Dim strVerb   As String
+  Dim role_ret    As New BulkRetrieve
+  Dim role_list   As List
+  Dim master_role_rec    As Record
+  Dim alias_role_rec    As Record
+  Dim strVerbMerge As String
+  Dim strVerbPreview As String
+  Dim num_moved as Long
+  Dim num_deleted as Long
+
+  strVerbMerge = "Reassigning"  
+  strVerbPreview = "To reassign"
+  num_moved = 0
+  num_deleted = 0
+
+  ' If this relation isn't valid for this database, dont do anything
+  If lstRelations.Contains(rel_name) = False  Then Exit Sub
+  
+  Set lstObject = bulkRet.GetRelatedRecordList(recAliasUser, rel_name)
+
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " " + desc + " that may be moved or deleted."
+  End If
+
+  For j = 0 To lstObject.Count - 1
+	  Set recObject = lstObject.ItemByIndex(j)
+
+    ' Get this alias role
+    ' We actually need the objid of the "other" table that the role is pointing to
+    ' All this because we cant read a relation field from a record. Sigh...
+    role_ret.Clear
+    role_ret.SimpleQuery  0, view_name
+    role_ret.AppendFilter 0, "objid", cbEqual, recObject.GetField("objid")
+    role_ret.RetrieveRecords
+
+    Set role_list = role_ret.GetRecordList(0)
+
+										  ' Trap for very unexpected error - this should never happen
+	  If role_list.Count = 0 Then
+		  MergeLog "ERROR - There is no record found in view " + view_name +  " with Objid " _
+			  + CStr(recObject.GetField("objid")) 
+			  SMetrics.BMerge = False
+			  Goto next_role
+	  End If
+
+    Set alias_role_rec = role_list.ItemByIndex(0)
+    
+    ' Search for a role for the master user with the same role name
+    role_ret.Clear
+    role_ret.SimpleQuery  0, view_name
+    role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+    role_ret.AppendFilter 0, object_objid_field, cbEqual, alias_role_rec.GetField(object_objid_field)
+    role_ret.AppendFilter 0, user_objid_field, cbEqual, recMasterUser.GetField("objid")
+    role_ret.RetrieveRecords
+
+    Set role_list = role_ret.GetRecordList(0)
+ 
+    ' If this role doesnt exist for the master, then simply move (reassign) 
+    ' the role to the master   
+    ' Else, it does, so delete this role, as we dont want duplicates, 
+    ' as this would cause an index violation 
+
+    If role_list.Count = 0 Then
+       strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+       MergeLog strVerb + " " + desc + " " + Trim$(Str$(recObject.GetField("objid")))
+       bulkSav.RelateRecords recMasterUser, recObject, rel_name
+       num_moved = num_moved + 1
+    Else
+			 strVerb = Iif(sMetrics.bMerge, ".... Deleted", ".... To delete")
+       MergeLog strVerb + " " + desc + " " + Trim$(Str$(recObject.GetField("objid")))
+			 bulkSav.DeleteRecord recObject
+       num_deleted = num_deleted + 1
+    End If
+    iMetric = iMetric + 1
+next_role:
+  Next j          
+
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+      MergeLog ".. " + Trim$(Str$(num_moved)) + " " + desc + strVerb + "."
+      strVerb = Iif(sMetrics.bMerge, " deleted", " to delete")
+      MergeLog ".. " + Trim$(Str$(num_deleted)) + " " + desc + strVerb + "."
+    End If
+
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Fetch Relations - Get the List of user relations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Public Sub FetchRelations() 
+  Dim sql       As New SqlDB
+  Dim oneRelation as relations
+  Dim i as Long  
+  Dim lstTemp as New List
+
+  Set lstRelations = New List
+
+  lstTemp.ItemType = "relations"
+  lstRelations.ItemType = "string"
+  sql.Select "select rel_name from adp_sch_rel_info where type_id = 20", lstRelations  
+
+  For i = 0 To lstTemp.Count - 1
+    lstTemp.GetItemByIndex i, oneRelation
+    lstRelations.AppendItem oneRelation.rel_name
+  Next i
+
+End Sub
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeMergeGUI() - Perform merge from GUI
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeMergeGUI(objidMaster As Long, bMerge As Boolean, strLogFile As String)
+  Dim bulkRet     As new BulkRetrieve
+  Dim master_list As List
+  Dim master_rec  As Record
+  Dim i           As Long
+  Dim sMetrics    As empMetrics
+  
+  '
+  ' clarify
+  '
+  bMergeGUI = True
+  
+  '
+  ' Initialize metrics.
+  '
+  EmployeeMetricsInit sMetrics
+  sMetrics.bMerge = bMerge
+  
+  '
+  ' Open log file
+  '
+  MergeLogOpen sMetrics.bMerge
+  
+  '
+  ' Print report header
+  '
+  EmployeeHeaderPrint sMetrics
+
+  '
+  ' Query for all relations
+  '
+  FetchRelations
+  If d_p then debug.print "total number of relations=" & cstr(lstRelations.count)  
+  
+  '
+  ' Fetch specified master or all employee masters
+  '
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "employee"
+  If objidMaster > 0 Then
+    bulkRet.AppendFilter 0, "objid", cbEqual, objidMaster
+  Else
+    bulkRet.AppendFilter 0, "x_objid_master", cbEqual, 1
+    'bulkRet.AppendFilter 0, "status", cbLess, 2
+  End If
+  bulkRet.RetrieveRecords
+  Set master_list = bulkRet.GetRecordList(0)
+  For i = 0 To master_list.Count - 1
+    Set master_rec = master_list.ItemByIndex(i)
+    EmployeeMergeMaster master_rec, sMetrics
+  Next i
+  
+  '
+  ' Print report footer
+  '
+  EmployeeFooterPrint sMetrics
+  
+  '
+  ' Close log file
+  '
+  strLogFile = strFile
+  MergeLogClose
+End Sub  
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeMerge() - Run merge report or perform merge
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Sub EmployeeMerge()
+
+
+  Dim bulkRet     As New BulkRetrieve
+  Dim master_list As List
+  Dim master_rec  As Record
+  Dim i           As Long
+  Dim sMetrics    As empMetrics
+
+  '
+  ' cbbatch
+  '
+  bMergeGUI = False
+  
+  '
+  ' Initialize metrics. Env var FC_MERGE indidates whether merge or
+  ' report will be run.
+  '
+  EmployeeMetricsInit sMetrics
+
+  sMetrics.bMerge = Iif(Lcase$(Environ$("FC_MERGE")) = "yes", True, False)
+
+
+  '
+  ' Open log file
+  '
+  MergeLogOpen sMetrics.bMerge
+
+  '
+  ' Print report header
+  '
+  EmployeeHeaderPrint sMetrics
+
+  '
+  ' Query for all relations
+  '
+  FetchRelations
+  If d_p then debug.print "total number of relations=" & cstr(lstRelations.count)
+
+  '
+  ' Print out relations
+  '
+  Dim oneRelation as relations
+  For i = 0 To lstRelations.Count - 1
+    'If d_p Then debug.print lstRelations.ItemByIndex(i)
+  Next i
+
+  '
+  ' Fetch employee masters
+  '
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "employee"
+  bulkRet.AppendFilter 0, "x_objid_master", cbEqual, 1
+  'bulkRet.AppendFilter 0, "status", cbLess, 2
+  bulkRet.RetrieveRecords
+  Set master_list = bulkRet.GetRecordList(0)
+  For i = 0 To master_list.Count - 1
+    Set master_rec = master_list.ItemByIndex(i)
+    EmployeeMergeMaster master_rec, sMetrics
+  Next i
+
+
+  '
+  ' Print report footer
+  '
+  EmployeeFooterPrint sMetrics
+  
+  '
+  ' Close log file
+  '
+  MergeLogClose
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' EmployeeMergeMaster() - Run merge report or perform merge
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub EmployeeMergeMaster(master_rec As Record, sMetrics As empMetrics)
+  Dim bulkRet    As New BulkRetrieve
+  Dim alias_list As List
+  Dim alias_rec  As Record
+  Dim i          As Long
+  Dim bulkSav    As New BulkSave
+  
+  '
+  ' Fetch employee aliases
+  '
+  bulkRet.SetRoot master_rec
+  bulkRet.TraverseFromRoot 0, "employee2alias"
+  'bulkRet.AppendFilter 0, "status", cbNotEqual, 2  '2=obsolete
+  bulkRet.RetrieveRecords
+  
+  Set alias_list = bulkRet.GetRecordList(0)
+  For i = 0 To alias_list.Count - 1
+    Set alias_rec = alias_list.ItemByIndex(i)
+    EmployeeMergeAlias master_rec, alias_rec, sMetrics
+  Next i
+
+  If sMetrics.bMerge Then  
+    master_rec.setField "x_objid_master", 0
+    bulkSav.UpdateRecord master_rec
+    bulkSav.Save
+  End If
+End Sub
+
+

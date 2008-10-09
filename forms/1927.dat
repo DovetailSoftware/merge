@@ -1,0 +1,2164 @@
+OBJECT  TYPE="window_db", NAME="WINDOW_DB_1927_1.0_merge_1.0"
+ UNIQUE_FIELD = id , ver_clarify, ver_customer, locale
+  FIELDS
+   title ="Employee Alias";
+   id=1927;
+   top_c=32;
+   bottom_c=529;
+   left_c=38;
+   right_c=750;
+   flags=0;
+   type=12;
+   form=1;
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   min_width=0;
+   min_height=0;
+   description ="";
+   dimmable=0;
+   dialog_name ="EmployeeAlias";
+   ver_clarify ="1.0";
+   ver_customer ="merge_1.0";
+   base_flag ="";
+   preload ="";
+   dlg_time_stamp = DATE "12/06/2005 17:29:34";
+   factor_top=0;
+   factor_bottom=0;
+   factor_left=0;
+   factor_right=0;
+   ver_cl_srce ="";
+   dev=0;
+   locale=0;
+   banner_icon=-1;
+   banner_color=-1;
+   backcolor=-1;
+   value1 ="";
+  END_FIELDS
+  RELATIONS
+  END_RELATIONS
+END_OBJECT  NAME="WINDOW_DB_1927_1.0_merge_1.0"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_1"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=1;
+   title ="Master Employees:";
+   top_c=8;
+   bottom_c=29;
+   left_c=12;
+   right_c=145;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="DTS_62a";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_1"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_2"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=2;
+   title ="Sort by:";
+   top_c=228;
+   bottom_c=243;
+   left_c=12;
+   right_c=60;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label15";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_2"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_3"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=3;
+   title ="First/Last Name:";
+   top_c=178;
+   bottom_c=196;
+   left_c=12;
+   right_c=132;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label15b";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_3"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_4"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=4;
+   title ="List candidates whose:";
+   top_c=152;
+   bottom_c=170;
+   left_c=12;
+   right_c=160;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label23";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_4"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_5"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=5;
+   title ="Mark as:";
+   top_c=256;
+   bottom_c=271;
+   left_c=620;
+   right_c=679;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="Label15a";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_5"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_6"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=6;
+   title ="Alias (Duplicate) Employees:";
+   top_c=10;
+   bottom_c=31;
+   left_c=360;
+   right_c=534;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="DTS_62aa";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_6"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_7"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=0;
+   id=7;
+   title ="Login Name:";
+   top_c=204;
+   bottom_c=220;
+   left_c=12;
+   right_c=91;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="LBL_CITY_STATE";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_7"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_8"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=8;
+   title =">?";
+   top_c=29;
+   bottom_c=51;
+   left_c=268;
+   right_c=330;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=0;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdMasterShow";
+   intval1=2;
+   intval2=1160;
+   intval3=1160;
+   intval4=1161;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_8"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_9"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=13;
+   id=9;
+   title ="";
+   top_c=252;
+   bottom_c=449;
+   left_c=16;
+   right_c=614;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=4096;
+   vlink_name ="CandidateListDest";
+   vlink_fld=0;
+   vlink_dtype=518;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="clCandidateList";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_9"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_10"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=10;
+   title ="Save";
+   top_c=405;
+   bottom_c=427;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdSave";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_10"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_11"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=3;
+   id=11;
+   title ="";
+   top_c=176;
+   bottom_c=196;
+   left_c=144;
+   right_c=280;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=0;
+   vlink_dtype=516;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="first_name_filter";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="-10,0,0,0,400,0,0,0,0,1,2,1,34,MS Sans Serif";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_11"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_12"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=3;
+   id=12;
+   title ="";
+   top_c=176;
+   bottom_c=196;
+   left_c=288;
+   right_c=424;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="last_name_filter";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="-10,0,0,0,400,0,0,0,0,1,2,1,34,MS Sans Serif";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_12"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_13"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=3;
+   id=13;
+   title ="";
+   top_c=202;
+   bottom_c=222;
+   left_c=144;
+   right_c=280;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="strLoginName";
+   vlink_fld=0;
+   vlink_dtype=516;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="login_name_filter";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="-10,0,0,0,400,0,0,0,0,1,2,1,34,MS Sans Serif";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_13"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_14"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=7;
+   id=14;
+   title ="";
+   top_c=225;
+   bottom_c=245;
+   left_c=144;
+   right_c=280;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="SORT";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_14"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_15"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=7;
+   id=15;
+   title ="";
+   top_c=225;
+   bottom_c=245;
+   left_c=294;
+   right_c=429;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="ASC_DESC";
+   intval1=0;
+   intval2=-1;
+   intval3=-1;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_15"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_16"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=6;
+   id=16;
+   title ="Include inactive employees";
+   top_c=177;
+   bottom_c=194;
+   left_c=427;
+   right_c=614;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=16;
+   vlink_name ="ActiveSel";
+   vlink_fld=0;
+   vlink_dtype=512;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="INCLUDE_INACT_CHK";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_16"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_17"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=17;
+   title ="List";
+   top_c=227;
+   bottom_c=245;
+   left_c=528;
+   right_c=608;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdCandidateList";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_17"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_18"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=18;
+   title ="Master";
+   top_c=275;
+   bottom_c=297;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdMasterAdd";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_18"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_19"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=19;
+   title ="Alias";
+   top_c=300;
+   bottom_c=322;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdAliasAdd";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_19"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_20"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=13;
+   id=20;
+   title ="Field Array";
+   top_c=29;
+   bottom_c=152;
+   left_c=12;
+   right_c=261;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=536875008;
+   vlink_name ="MasterListDest";
+   vlink_fld=0;
+   vlink_dtype=518;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="clMasterList";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_20"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_21"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=21;
+   title ="Unmark";
+   top_c=58;
+   bottom_c=81;
+   left_c=268;
+   right_c=330;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdMasterDelete";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_21"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_22"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=22;
+   title =">?";
+   top_c=29;
+   bottom_c=51;
+   left_c=615;
+   right_c=676;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=0;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdAliasShow";
+   intval1=2;
+   intval2=1160;
+   intval3=1160;
+   intval4=1161;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_22"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_23"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=13;
+   id=23;
+   title ="Field Array";
+   top_c=31;
+   bottom_c=154;
+   left_c=358;
+   right_c=608;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=536875008;
+   vlink_name ="AliasListDest";
+   vlink_fld=0;
+   vlink_dtype=518;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="clAliasList";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_23"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_24"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=24;
+   title ="Unmark";
+   top_c=58;
+   bottom_c=81;
+   left_c=615;
+   right_c=676;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdAliasDelete";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_24"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_25"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=25;
+   title =">?";
+   top_c=225;
+   bottom_c=247;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=0;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdCandidateShow";
+   intval1=2;
+   intval2=1160;
+   intval3=1160;
+   intval4=1161;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_25"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_26"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=26;
+   title ="Preview";
+   top_c=88;
+   bottom_c=111;
+   left_c=268;
+   right_c=330;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdPreview";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_26"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_27"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=27;
+   title ="Preview";
+   top_c=335;
+   bottom_c=357;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdPreviewAll";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_27"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_28"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=3;
+   id=28;
+   title ="";
+   top_c=456;
+   bottom_c=478;
+   left_c=16;
+   right_c=614;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=256;
+   vlink_name ="strStatus";
+   vlink_fld=0;
+   vlink_dtype=516;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="txtStatus";
+   intval1=0;
+   intval2=-1;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="-10,0,0,0,400,0,0,0,0,1,2,1,34,MS Sans Serif";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_28"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_29"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=29;
+   title ="Merge All";
+   top_c=362;
+   bottom_c=384;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdMergeAll";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_29"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_30"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=30;
+   title ="Merge";
+   top_c=118;
+   bottom_c=141;
+   left_c=270;
+   right_c=330;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdMerge";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_30"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_31"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=31;
+   title ="Swap";
+   top_c=131;
+   bottom_c=154;
+   left_c=615;
+   right_c=676;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="cmdSwap";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_31"
+
+OBJECT  TYPE="control_db", NAME="CONTROL_DB_1927_1.0_merge_1.0_32"
+ UNIQUE_FIELD=id,name UNIQUE_RELATION=control2window_db
+  FIELDS
+   type=4;
+   id=32;
+   title ="Done";
+   top_c=456;
+   bottom_c=478;
+   left_c=620;
+   right_c=691;
+   from_side=0;
+   to_ctrl_id=0;
+   same_side=0;
+   justification=0;
+   flags=0;
+   vlink_name ="";
+   vlink_fld=-1;
+   vlink_dtype=-1;
+   tlink_name ="";
+   tlink_fld=-1;
+   tlink_dtype=-1;
+   name ="DONE";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   value1 ="";
+   value2 ="";
+   win_id=1927;
+   function_id=0;
+   description ="";
+   dimmable=0;
+   vlink_fld_name ="";
+   tlink_fld_name ="";
+   dev=0;
+   flags2=0;
+   backcolor=0;
+   forecolor=0;
+   font ="0,0,0,0,0,0,0,0,0,0,0,0,0,";
+   value3 ="";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=control2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CONTROL_DB_1927_1.0_merge_1.0_32"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="CandidateList";
+   value2 ="First Name";
+   value3 ="first_name";
+   intval1=16777231;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=9;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=33;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_9" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="CandidateList";
+   value2 ="Last Name";
+   value3 ="last_name";
+   intval1=16777230;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=9;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=34;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_9" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_2"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=2;
+   value1 ="CandidateList";
+   value2 ="Login Name";
+   value3 ="login_name";
+   intval1=15;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=9;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=35;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_9" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_2"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_3"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=3;
+   value1 ="CandidateList";
+   value2 ="Office";
+   value3 ="p_site";
+   intval1=6;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=9;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=36;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_9" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_3"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_4"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=4;
+   value1 ="CandidateList";
+   value2 ="Active?";
+   value3 ="status";
+   intval1=17;
+   intval2=660;
+   intval3=48;
+   intval4=8;
+   ctl_id=9;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=37;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_9" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_9_4"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="First Name";
+   value2 ="empl_user.first_name";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=14;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=-1;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_14" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="Last Name";
+   value2 ="empl_user.last_name";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=14;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=-1;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_14" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_2"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=2;
+   value1 ="Login Name";
+   value2 ="empl_user.login_name";
+   value3 ="";
+   intval1=0;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=14;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=-1;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_14" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_14_2"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_15_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="Ascending";
+   value2 ="";
+   value3 ="";
+   intval1=1;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=15;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=-1;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_15" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_15_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_15_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="Descending";
+   value2 ="";
+   value3 ="";
+   intval1=2;
+   intval2=0;
+   intval3=0;
+   intval4=0;
+   ctl_id=15;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=-1;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_15" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_15_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="MasterList";
+   value2 ="Login Name";
+   value3 ="login_name";
+   intval1=15;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=20;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=3;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=38;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_20" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="MasterList";
+   value2 ="First Name";
+   value3 ="first_name";
+   intval1=16777231;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=20;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=3;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=39;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_20" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_2"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=2;
+   value1 ="MasterList";
+   value2 ="Last Name";
+   value3 ="last_name";
+   intval1=16777230;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=20;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=3;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=40;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_20" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_20_2"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_0"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=0;
+   value1 ="AliasList";
+   value2 ="Login Name";
+   value3 ="login_name";
+   intval1=15;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=23;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=41;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_23" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_0"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_1"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=1;
+   value1 ="AliasList";
+   value2 ="First Name";
+   value3 ="first_name";
+   intval1=16777231;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=23;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=0;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=42;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_23" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_1"
+
+OBJECT  TYPE="value_item", NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_2"
+ UNIQUE_FIELD = id , ctl_id UNIQUE_RELATION = item2window_db 
+  FIELDS
+   id=2;
+   value1 ="AliasList";
+   value2 ="Last Name";
+   value3 ="last_name";
+   intval1=16777230;
+   intval2=516;
+   intval3=120;
+   intval4=8;
+   ctl_id=23;
+   value4 ="";
+   intval5=0;
+   intval6=0;
+   intval7=0;
+   intval8=0;
+   intval9=3;
+   dev=0;
+   value5 ="";
+   intval10=0;
+   column_ctl_id=43;
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=item2window_db;
+   TO_NAME="CONTROL_DB_1927_1.0_merge_1.0_23" REL=value2control_db;
+  END_RELATIONS
+END_OBJECT  NAME="VALUE_ITEM_1927_1.0_merge_1.0_23_2"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateList"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="CandidateList";
+   type=55;
+   idx=0;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="CandidateList";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateList"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateListDest"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="CandidateListDest";
+   type=518;
+   idx=1;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="CandidateListDest";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateListDest"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_AliasListDest"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="AliasListDest";
+   type=518;
+   idx=2;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="AliasListDest";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_AliasListDest"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_AliasList"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="AliasList";
+   type=55;
+   idx=3;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="AliasList";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_AliasList"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterList"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="MasterList";
+   type=55;
+   idx=4;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="MasterList";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterList"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterListDest"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="MasterListDest";
+   type=518;
+   idx=5;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="MasterListDest";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterListDest"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterAliasList"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="MasterAliasList";
+   type=518;
+   idx=6;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="MasterAliasList";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_MasterAliasList"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_strStatus"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="strStatus";
+   type=516;
+   idx=7;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="strStatus";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_strStatus"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_ActiveSel"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="ActiveSel";
+   type=512;
+   idx=8;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="ActiveSel";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_ActiveSel"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateFilter"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="CandidateFilter";
+   type=55;
+   idx=9;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="CandidateFilter";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_CandidateFilter"
+
+OBJECT  TYPE="ctx_obj_db", NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_strLoginName"
+ UNIQUE_FIELD = title  UNIQUE_RELATION = ctx_obj2window_db 
+  FIELDS
+   title ="strLoginName";
+   type=516;
+   idx=10;
+   behavior=16;
+   str_size=0;
+   dev=0;
+   caption ="";
+   subtype ="None";
+  END_FIELDS
+  RELATIONS
+   TO_NAME="WINDOW_DB_1927_1.0_merge_1.0" REL=ctx_obj2window_db;
+  END_RELATIONS
+END_OBJECT  NAME="CTX_OBJ_DB_1927_1.0_merge_1.0_strLoginName"
+

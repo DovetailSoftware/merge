@@ -1,0 +1,1121 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  Contact/Site Merge
+'                                                                           
+' Name           :  site_merge.cbs                                           
+'                                                                           
+' Description     :  Performs 'merge' process. Callable by GUI or cbbatch.       
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   4412 Spicewood Springs Road, Suite 701                            
+'                   Austin, TX 78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997, 1998 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Type stMetrics
+  bMerge as Boolean
+  iSchemaRev as Integer
+  bVerbose as Boolean
+  iAlias as Long
+  iAlert as Long
+  iCommitLog as Long
+  iWebUser as Long
+  iPhoneLog as Long
+  iCtrSitRole as Long
+  iDemandHdr as Long
+  iCase as Long
+  iContactRole as Long
+  iBusOrgRole as Long
+  iContractRole as Long
+  iAltContact as Long
+  iUser as Long
+  iContract as Long
+  iSitePart as Long
+  iPrimaryContract as Long
+  iActEntry as Long
+  iEmailLog as Long
+  iCampaign as Long
+  iPrimaryTask as Long
+  iQuickQuote as Long
+  iOpportunityRole as Long
+  iMailListRole as Long
+  iPartVend As Long
+  iPhone As Long
+  iEAddr As Long
+  iCaseReseller As Long
+  iAttach As Long
+  iInvRole As Long
+  iShipPart As Long
+  iParentSite As Long
+  iPerRole As Long
+  iContItemRole As Long
+  iTrans As Long
+  iProdBin As Long
+  iSitePartRole As Long
+  iTopProdBin As Long
+  iAddrRole As Long
+  iBillDemandHdr As Long
+  iSuppOff As Long
+  iEmployee As Long
+  iBusOrg As Long
+  iContrInst As Long
+  iTopSitePart As Long
+  iInvLocatn As Long
+  iBillItem As Long
+  iAtItem As Long
+  iByItem As Long
+  iCSCRole As Long
+  iShipItem As Long
+  iPartnerExchange As Long
+  iACDCall As Long
+  iSiteScript As Long
+  iContScript As Long
+  iInteract As Long
+  iLscRole As Long
+  iExcRole As Long
+  iExcSiteRole As Long
+  iSitePartNum As Long
+  iSiteVendorPart As Long
+  iContAttach As Long
+  iShpSitRole As Long
+  iCeAddr As Long
+  irRqst As Long
+  irRqst2 As Long
+  iConPymRole As Long
+  iParentConRole As Long
+  iChildConRole As Long
+  iContPref As Long
+  iContUserTouch As Long
+  iParticipant As Long
+  iSiteAddrRole As Long
+  iBillSite As Long
+  iPrimSite As Long
+  iShipSite As Long
+  iPerAddrRole As Long
+  iAddrShipSched As Long
+  iAddrBillSched As Long
+  iAddrItm As Long
+  iAddrCase As Long
+  iAddrBusPrim As Long
+  iAddrBusAddr As Long
+  iAddrExtn As Long
+  iAddrBaRole As Long
+  iPartRev As Long
+  iPrimaryBusOrg As Long
+  iSiteOrderAction As Long
+  iSiteOrderShipping As Long
+  iSiteBARole As Long
+  iPrimaryBlgArg As Long
+  iConFinAccnt As Long
+  iConBlgArg As Long
+  iConSPRole As Long
+  iConPCRole As Long
+  iConPPBRole As Long
+  iConOrderAction As Long
+  iConFRAgrRole As Long
+  iConInteraction As Long
+  iConProcInst As Long
+End Type
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Declare Sub SiteMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+Declare Sub MergeLog(strLog As String)
+Declare Sub ObjectReassign(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+Declare Sub ObjectReassignAlert(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' SiteFooterPrint() - Print report footer
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub SiteFooterPrint(sMetrics As stMetrics)
+  Dim strMsg As String
+
+  MergeLog "------------------------------------------------------"
+  MergeLog "Metrics:"
+  MergeLog ""
+
+  strMsg = Iif(sMetrics.bMerge, " have been processed.", " to be processed.")
+  MergeLog Trim$(str$(sMetrics.iAlias)) + " site aliases" + strMsg
+  MergeLog Trim$(str$(sMetrics.iCase)) + " cases" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSitePart)) + " site parts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iTopSitePart)) + " top-level site parts" + strMsg
+  MergeLog Trim$(Str$(sMetrics.iContactRole)) + " contact roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPartVend)) + " vendor parts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iInvLocatn)) + " inventory locations" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPhone)) + " phones" + strMsg
+  MergeLog Trim$(str$(sMetrics.iCaseReseller)) + " case resellers" + strMsg
+  MergeLog Trim$(str$(sMetrics.iInvRole)) + " inventory roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iShipPart)) + " shipment parts" + strMsg
+  MergeLog Trim$(str$(sMetrics.iParentSite)) + " parent sites" + strMsg
+  MergeLog Trim$(str$(sMetrics.iTrans)) + " extract dates" + strMsg
+  MergeLog Trim$(str$(sMetrics.iTopProdBin)) + " top-level product bins" + strMsg
+  MergeLog Trim$(str$(sMetrics.iActEntry)) + " activity logs" + strMsg
+  MergeLog Trim$(str$(sMetrics.iProdBin)) + " product bins" + strMsg
+  MergeLog Trim$(str$(sMetrics.iACDCall)) + " ACD calls" + strMsg
+  MergeLog Trim$(str$(sMetrics.iDemandHdr)) + " part request headers" + strMsg
+  MergeLog Trim$(str$(sMetrics.iBillDemandHdr)) + " billing site part request headers" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSuppOff)) + " support offices" + strMsg
+  MergeLog Trim$(str$(sMetrics.iEmployee)) + " employees" + strMsg
+  MergeLog Trim$(str$(sMetrics.iContract)) + " contracts" + strMsg
+
+  If sMetrics.iSchemaRev >= 43 Then
+    '
+    ' Clarify schema 43+ (Clfy 4.5+)
+    '
+    MergeLog Trim$(str$(sMetrics.iAlert)) + " alerts" + strMsg
+    MergeLog Trim$(str$(sMetrics.iEAddr)) + " e addresses" + strMsg
+    MergeLog Trim$(str$(sMetrics.iPerRole)) + " person site roles" + strMsg
+    MergeLog Trim$(str$(sMetrics.iContitemRole)) + " c_site roles" + strMsg
+    MergeLog Trim$(str$(sMetrics.iSitePartRole)) + " site part roles" + strMsg
+    MergeLog Trim$(str$(sMetrics.iAddrRole)) + " site address roles" + strMsg
+    MergeLog Trim$(str$(sMetrics.iBusOrg)) + " biz org roles" + strMsg
+
+    If sMetrics.iSchemaRev = 43 Then 
+       '
+       ' Clarify schema 43+ (Clfy 4.5, 4.6)
+       '
+       MergeLog Trim$(str$(sMetrics.iContractRole)) + " ch_site roles" + strMsg
+       MergeLog Trim$(str$(sMetrics.iCtrSitRole)) + " contract-contact roles" + strMsg
+       MergeLog Trim$(str$(sMetrics.iContrInst)) + " contract line items" + strMsg
+    Else If sMetrics.iSchemaRev >= 44 Then
+            '
+            ' Clarify schema 44+ (Clfy 5.x+)
+            '
+            MergeLog Trim$(str$(sMetrics.iBillItem)) + " bill items" + strMsg
+            MergeLog Trim$(str$(sMetrics.iQuickQuote)) + " quick quotes" + strMsg
+            MergeLog Trim$(str$(sMetrics.iAtitem)) + " quoted at line items" + strMsg
+            MergeLog Trim$(str$(sMetrics.iByItem)) + " covered-by line items" + strMsg
+            MergeLog Trim$(str$(sMetrics.iCSCRole)) + " CSC Roles" + strMsg
+            MergeLog Trim$(str$(sMetrics.iShipItem)) + " ship schedule line items" + strMsg
+            MergeLog Trim$(str$(sMetrics.iPartnerExchange)) + " partner exchanges" + strMsg
+         End If
+    End If
+
+    If sMetrics.iSchemaRev >= 45 Then 
+       '
+       ' Clarify schema 45+ (Clfy 6.x+)
+       '
+       MergeLog Trim$(str$(sMetrics.iSiteScript)) + " scripts" + strMsg
+    End If
+
+    If sMetrics.iSchemaRev >= 51 Then
+       ' Clarify 7.x+
+       MergeLog Trim$(str$(sMetrics.iExcSiteRole)) + " site exchange roles" + strMsg
+       MergeLog Trim$(Str$(sMetrics.iSitePartNum)) + " generic OEM Parts for site" + strMsg
+       MergeLog Trim$(str$(sMetrics.iSiteVendorPart)) + " site vedor part roles" + strMsg
+    End If
+    
+    If sMetrics.iSchemaRev >= 52 Then
+       ' Clarify 8.x+
+       MergeLog Trim$(Str$(sMetrics.iParticipant)) & " participants" + strMsg
+    End If
+
+    If sMetrics.iSchemaRev >= 54 Then 
+       '
+       ' Clarify schema 54+ (Clfy 9.x+)
+       '
+       MergeLog Trim$(str$(sMetrics.iShpSitRole)) + " ship site roles" + strMsg
+    End If
+
+    If sMetrics.iSchemaRev >= 58 Then 
+       '
+       ' Clarify schema 58+ (Clfy 11.5+)
+       '
+       MergeLog Trim$(str$(sMetrics.iPrimaryBusOrg)) + " primary bus org roles" + strMsg
+    End If
+
+    If sMetrics.iSchemaRev >= 59 Then 
+       '
+       ' Clarify schema 59+ (Clfy 12.0+)
+       '
+       MergeLog Trim$(str$(sMetrics.iSiteOrderAction)) + " site order actions" + strMsg
+       MergeLog Trim$(str$(sMetrics.iSiteOrderShipping)) + " site order shippings" + strMsg
+       MergeLog Trim$(str$(sMetrics.iSiteBARole)) + " site BA roles" + strMsg
+       MergeLog Trim$(str$(sMetrics.iPrimaryBlgArg)) + " site blg args" + strMsg
+    End If
+  End If  
+
+  MergeLog "------------------------------------------------------"   
+  MergeLog "END " + Trim$(App.CurrentDate)
+  MergeLog "------------------------------------------------------"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' SiteMergeAlias() - Run merge report or perform merge
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub SiteMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+  Dim bulkRet   As New BulkRetrieve
+  Dim bulkSav   As BulkSave
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim lstOther  As List
+  Dim recOther  As Record
+  Dim strVerb   As String
+  Dim t_list    As List
+  Dim gbst_rec  As Record
+  Dim do_act    As Boolean
+  Dim n_act_rec As Record
+  
+  Dim i         As Long
+  Dim j         As Long    
+  
+  Dim recActEntry As new Record
+  Dim lstActCode  As List
+  Dim recActCode  As Record
+
+  Dim role_ret    As New BulkRetrieve
+  Dim role_list   As List
+  Dim role_rec    As Record
+  Dim master_role_rec As Record
+  Dim marker      As Long
+  Dim offset      As Integer
+  Dim bin_list    As List
+  Dim mst_deinst  As Record
+  Dim is_mst_deinst As Boolean
+  Dim bin_rec     As Record
+  Dim recRole     As Record
+
+                                        ' Get the config items needed and the gbst_elm
+                                        '  record for the act_entry
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "config_itm"
+  bulkRet.AppendFilter 0, "name", cbEqual, "FC Merge Add Activity"
+  bulkRet.SimpleQuery 1, "gbst_elm"
+  bulkRet.AppendFilter 1, "rank", cbEqual, 90362
+  bulkRet.RetrieveRecords
+  
+                                        ' Get each item, and save it.
+  Set t_list = bulkRet.GetRecordList(0)
+  Set gbst_rec = t_list.ItemByIndex(0)
+  do_act = gbst_rec.GetField("i_value") = 1
+  Set t_list = bulkRet.GetRecordList(1)
+  Set gbst_rec = t_list.ItemByIndex(0)
+
+  bulkRet.Clear
+  bulkRet.SimpleQuery 0, "site"
+  bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
+  bulkRet.SimpleQuery 1, "site"
+  bulkRet.AppendFilter 1, "objid", cbEqual, recMaster.GetField("objid")
+  If sMetrics.iSchemaRev >= 51 Then
+                                        ' Dummy place holder - relation removed as of 7.0
+     bulkRet.SimpleQuery 2, "case"
+     bulkRet.AppendFilter 2, "objid", cbEqual, 0
+  Else
+     bulkRet.TraverseFromParent  2, "site2part_vend", 0          'OTM
+  End If
+  bulkRet.TraverseFromParent  3, "site2inv_locatn", 0         'OTM
+  bulkRet.TraverseFromParent  4, "cust_loc2phone", 0          'OTM
+  bulkRet.TraverseFromParent  5, "cust_loc2case", 0           'OTM
+  bulkRet.TraverseFromParent  6, "seller2case", 0             'OTM
+  bulkRet.TraverseFromParent  7, "site_attch2doc_inst", 0     'OTM
+  bulkRet.TraverseFromParent  8, "site2inv_role", 0           'OTM
+  bulkRet.TraverseFromParent  9, "site2contact_role", 0       'OTM
+  bulkRet.TraverseFromParent 10, "carrier2ship_parts", 0      'OTM
+  bulkRet.TraverseFromParent 11, "parent_site2site", 0        'OTM
+  bulkRet.TraverseFromParent 12, "site2trans_record", 0       'OTM
+  bulkRet.TraverseFromParent 13, "prd_lst2productbin", 0      'OTM
+  bulkRet.TraverseFromParent 14, "cust_loc2act_entry", 0      'OTM
+  bulkRet.TraverseFromParent 15, "h_prd_lst2productbin", 0    'OTM
+  bulkRet.TraverseFromParent 16, "cust_loc2acd_call", 0       'OTM
+  bulkRet.TraverseFromParent 17, "site2all_site_part", 0      'OTM
+  bulkRet.TraverseFromParent 18, "site2demand_hdr", 0         'OTM
+  bulkRet.TraverseFromParent 19, "bill_site2demand_hdr", 0    'OTM
+  bulkRet.TraverseFromParent 20, "site_suppoff2site", 0       'OTM
+  bulkRet.TraverseFromParent 21, "support_off2employee", 0    'OTM
+  bulkRet.TraverseFromParent 22, "customer2site_part", 0      'OTM
+  bulkRet.TraverseFromParent 23, "cust_loc2contract", 0       'MTM
+  bulkRet.SimpleQuery 24, "gbst_lst"
+  bulkRet.AppendFilter 24, "title", cbEqual, "Activity Name"
+  bulkRet.TraverseFromParent 25, "gbst_lst2gbst_elm", 24
+  bulkRet.AppendFilter 25, "rank", cbEqual, 9800
+  bulkRet.TraverseFromParent 26, "contact_role2contact", 9
+  bulkRet.TraverseFromParent 27, "inv_role2inv_locatn", 8
+  bulkRet.TraverseFromParent 28, "prd_lst2productbin", 1      'OTM
+  bulkRet.AppendFilter 28, "name", cbEqual, "deinstall_rip"
+  bulkRet.TraverseFromParent 29, "site_part2productbin", 17
+  bulkRet.AppendFilter 29, "name", cbEqual, "deinstall_rip"
+  offset = 30
+  
+  If sMetrics.iSchemaRev >= 43 Then
+    '
+    ' Clarify schema 43+ (Clfy 4.5+)
+    '
+    bulkRet.TraverseFromParent 30, "site2alert", 0              'OTM
+    bulkRet.TraverseFromParent 31, "site2e_addr", 0             'OTM
+    bulkRet.TraverseFromParent 32, "site2per_site_role", 0      'OTM
+    bulkRet.TraverseFromParent 33, "site2c_site_role", 0        'OTM
+    bulkRet.TraverseFromParent 34, "site2sit_prt_role", 0       'OTM
+    bulkRet.TraverseFromParent 35, "site2site_addr_role", 0     'OTM
+    bulkRet.TraverseFromParent 36, "site2bus_site_role", 0      'OTM
+    bulkRet.TraverseFromParent 37, "bus_site_role2bus_org", 36  'OTM
+    
+    If sMetrics.iSchemaRev = 43 Then 
+       '
+       ' Clarify schema 43+ (Clfy 4.5, 4.6)
+       '
+       bulkRet.TraverseFromParent 38, "site2ch_site_role", 0    'OTM
+       bulkRet.TraverseFromParent 39, "site2ctrsitcon_role", 0  'OTM
+       bulkRet.TraverseFromParent 40, "site2contr_inst", 0      'OTM
+       offset = 41
+    Else If sMetrics.iSchemaRev >= 44 Then
+            '
+            ' Clarify schema 44+ (Clfy 5.x+)
+            '
+            bulkRet.TraverseFromParent 38, "bill_site2contr_schedule", 0 'OTM
+            bulkRet.TraverseFromParent 39, "site2quick_quote", 0         'OTM
+            bulkRet.TraverseFromParent 40, "quoted_at2contr_itm", 0      'OTM
+            bulkRet.TraverseFromParent 41, "covered_by2contr_itm", 0     'OTM
+            bulkRet.TraverseFromParent 42, "site2sit_csc_role", 0        'OTM
+            bulkRet.TraverseFromParent 43, "ship_site2contr_schedule", 0 'OTM
+            bulkRet.TraverseFromParent 44, "partner2exchange", 0         'OTM
+            offset = 45
+         End If
+    End If
+
+    If sMetrics.iSchemaRev >= 45 Then 
+       '
+       ' Clarify schema 45+ (Clfy 6.x)
+       '
+       bulkRet.TraverseFromParent 45, "site2scr_run", 0    'OTM
+       offset = 46
+    End If
+  End If  
+
+  If sMetrics.iSchemaRev >= 51 Then 
+     '
+     ' Clarify schema 51+ (Clfy 7.x)
+     '
+     bulkRet.TraverseFromParent 46, "site2exc_sit_role", 0    'OTM
+     bulkRet.TraverseFromParent 47, "site2part_num", 0    'OTM
+     bulkRet.TraverseFromParent 48, "site2vendor_part", 0    'OTM
+     offset = 49
+  End If
+
+  If sMetrics.iSchemaRev >= 52 Then
+    '
+    ' Clarify schema 52+ (Clfy 8.x+)
+    '
+
+    bulkRet.SimpleQuery 49, "participant"
+    bulkRet.AppendFilter 49, "focus_lowid", cbEqual, recAlias.GetField("objid")
+    bulkRet.AppendFilter 49, "focus_type", cbEqual, 52
+    offset = 50
+  End If
+
+  If sMetrics.iSchemaRev >= 54 Then 
+     '
+     ' Clarify schema 54+ (Clfy 9.x)
+     '
+     bulkRet.TraverseFromParent 50, "site2shp_sit_role", 0    'OTM
+     offset = 51
+  End If
+  
+  If sMetrics.iSchemaRev >= 58 Then 
+     '
+     ' Clarify schema 58+ (Clfy 11.5)
+     '
+     bulkRet.TraverseFromParent 51, "primary_site2bus_org", 0    'OTM
+     offset = 52
+  End If
+    
+  If sMetrics.iSchemaRev >= 59 Then 
+     '
+     ' Clarify schema 59+ (Clfy 12.0)
+     '
+     bulkRet.TraverseFromParent 52, "site2order_action", 0    'OTM
+     bulkRet.TraverseFromParent 53, "site2order_shipping", 0    'OTM
+     bulkRet.TraverseFromParent 54, "site2site_ba_role", 0    'OTM
+     bulkRet.TraverseFromParent 55, "primary_site2blg_argmnt", 0    'OTM
+     offset = 56
+  End If
+  
+        ' The following section should be uncommented ONLY if you are using Attachments Anywhere functionality
+'  bulkRet.SimpleQuery offset, "doc_inst"
+'  bulkRet.AppendFilter offset, "x_table", cbEqual, 52
+'  bulkRet.AppendFilter offset, "x_table_objid", cbEqual, recAlias.GetField("objid")
+  
+         ' The following section should be uncommented ONLY if you are using Flashes Anywhere functionality
+         ' NOTE: If you are using this function, BUT NOT THE Attachments Anywhere above, please change the
+         '  "offset + 1" clauses to "offset"
+'  bulkRet.SimpleQuery offset + 1, "alert_to_other"
+'  bulkRet.AppendFilter offset + 1, "obj_num", cbEqual, 52
+'  bulkRet.AppendFilter offset + 1, "obj_id", cbEqual, recAlias.GetField("objid")
+  bulkRet.RetrieveRecords
+   
+  '
+  ' Figure out if master site has a deinstall bin or not
+  '
+  Set bin_list = bulkRet.GetRecordList(28)
+  If bin_list.Count = 0 Then
+     is_mst_deinst = False
+  Else
+     is_mst_deinst = True
+     Set mst_deinst = bin_list.ItemByIndex(0)
+  End If
+  
+  '
+  ' Get act code gbst_elm for Chng Contact.
+  '
+  Set lstActCode = bulkRet.GetRecordList(25)
+  Set recActCode = lstActCode.ItemByIndex(0)
+
+  '
+  ' New bulk save for each site alias
+  '
+  Set bulkSav = New BulkSave
+  
+  '
+  ' Process alias
+  '
+  MergeLog ""
+  MergeLog "Site alias " + Trim$(Str$(recAlias.GetField("objid"))) + " " + _
+                 "(" + recAlias.GetField("site_id") + " - " + _
+                 recAlias.GetField("name") + ")"
+
+  ' Get the marker from the alias
+  marker = recAlias.GetField("x_marked_by")
+  If marker = 0 Then
+     marker = App.UserObjid
+  End If
+                 
+  '
+  ' If they want an act_entry for the merge, do it.
+  '        
+  If sMetrics.bMerge And do_act Then
+     Set n_act_rec = New Record
+     n_act_rec.RecordType = "act_entry"
+     n_act_rec.SetField "act_code", 90362
+     n_act_rec.SetField "entry_time", App.CurrentDate
+     n_act_rec.SetField "addnl_info", _
+       "Site alias " & _
+       recAlias.GetField("name") + " (" + _
+       recAlias.GetField("site_id") + ") " + _
+       "merged into this site."
+     bulkSav.InsertRecord n_act_rec
+     bulkSav.RelateRecords n_act_rec, gbst_rec, "entry_name2gbst_elm"
+     bulkSav.RelateRecords n_act_rec, recMaster, "act_entry2site"
+     bulkSav.RelateRecordsToID n_act_rec, "user", marker, "act_entry2user"
+  End If
+
+  '
+  ' Make alias site obsolete
+  '
+  If sMetrics.bMerge Then
+    bulkSav.UpdateRecord recAlias
+    recAlias.SetField "status", 2   'obsolete
+    recAlias.SetField "x_objid_master", 0
+    recAlias.SetField "x_marked_by", 0
+  End If
+  sMetrics.iAlias = sMetrics.iAlias + 1
+  
+  '
+  ' Log master for this alias
+  '               
+  MergeLog ".. Master site " + Trim$(Str$(recMaster.getField("objid"))) + " " + _
+                 "(" + recMaster.GetField("site_id") + " - " + _
+                 recMaster.GetField("name") + ")"
+  If sMetrics.bMerge Then
+    bulksav.UpdateRecord recMaster
+    bulksav.UnRelateRecords recAlias, recMaster, "alias2site"
+    recMaster.SetField "x_objid_master", 0
+  End If
+  
+  '
+  ' Process most of the OTMs for this alias
+  '
+  If sMetrics.iSchemaRev < 51 Then
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2part_vend", "vendor part", "Reassigning", "To reassign", sMetrics.iPartVend
+  End If
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2inv_locatn", "inventory location", "Reassigning", "To reassign", sMetrics.iInvLocatn
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "cust_loc2phone", "phone", "Reassigning", "To reassign", sMetrics.iPhone
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "seller2case", "case reseller", "Reassigning", "To reassign", sMetrics.iCaseReseller
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site_attch2doc_inst", "attachment", "Reassigning", "To reassign", sMetrics.iAttach
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "carrier2ship_parts", "ship part", "Reassigning", "To reassign", sMetrics.iShipPart
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "parent_site2site", "parent site", "Reassigning", "To reassign", sMetrics.iParentSite
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2trans_record", "extract data", "Reassigning", "To reassign", sMetrics.iTrans
+'  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "prd_lst2productbin", "top-level product bin", "Reassigning", "To reassign", sMetrics.iTopProdBin
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "cust_loc2act_entry", "activity log", "Reassigning", "To reassign", sMetrics.iActEntry
+'  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "h_prd_lst2productbin", "product bin", "Reassigning", "To reassign", sMetrics.iProdBin
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "cust_loc2acd_call", "acd call", "Reassigning", "To reassign", sMetrics.iACDCall
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bill_site2demand_hdr", "bill demand hdr", "Reassigning", "To reassign", sMetrics.iBillDemandHdr
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site_suppoff2site", "support office", "Reassigning", "To reassign", sMetrics.iSuppOff
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "support_off2employee", "employee", "Reassigning", "To reassign", sMetrics.iEmployee
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "cust_loc2contract", "contract", "Reassigning", "To reassign", sMetrics.iContract
+
+                   ' We have to see (for the product bins) if we should be moving the bin over.
+                   '  Usually we do. If this is a deinstall bin (top-level, one per site, but only if parts have been deleted)...
+                   '  AND the master has a deinstall bin, don't move the bin. Otherwise do
+  Set bin_list = BulkRet.GetRelatedRecordList(recAlias, "prd_lst2productbin")
+  If sMetrics.bVerbose Or bin_list.Count > 0 Then
+     MergeLog ".. " + Trim$(Str$(bin_list.Count)) + " top-level productbins that may be moved."
+  End If
+  For i = 0 To bin_list.Count - 1
+     Set bin_rec = bin_list.ItemByIndex(i)
+     If bin_rec.GetField("name") <> "deinstall_rip" Or is_mst_deinst = False Then
+        strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+        MergeLog strVerb + " top-level productbin " + Trim$(Str$(bin_rec.GetField("objid")))
+        bin_rec.SetField "parent_id", recMaster.GetField("objid")
+        bulkSav.UpdateRecord bin_rec
+        bulkSav.RelateRecords recMaster, bin_rec, "prd_lst2productbin"
+        sMetrics.iTopProdBin = sMetrics.iTopProdBin + 1
+     Else
+        strVerb = Iif(sMetrics.bMerge, ".... Bypassing", ".... To bypass")
+     End If
+  Next i
+  
+                   ' Now do the same for the other productbin relation
+  Set bin_list = BulkRet.GetRelatedRecordList(recAlias, "h_prd_lst2productbin")
+  If sMetrics.bVerbose Or bin_list.Count > 0 Then
+     MergeLog ".. " + Trim$(Str$(bin_list.Count)) + " productbins that may be moved."
+  End If
+  For i = 0 To bin_list.Count - 1
+     Set bin_rec = bin_list.ItemByIndex(i)
+     If bin_rec.GetField("name") <> "deinstall_rip" Or is_mst_deinst = False Then
+        strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+        MergeLog strVerb + " productbin " + Trim$(Str$(bin_rec.GetField("objid")))
+        bulkSav.UpdateRecord bin_rec
+        bulkSav.RelateRecords recMaster, bin_rec, "h_prd_lst2productbin"
+        sMetrics.iProdBin = sMetrics.iProdBin + 1
+     Else
+        strVerb = Iif(sMetrics.bMerge, ".... Bypassing", ".... To bypass")
+     End If
+  Next i
+
+                   ' Demand_hdr has some denormalized fields that have to be set as well
+                   ' Do the same as ObjectReassign. But for each one, we need to set
+                   '  a few additional denormalized fields to the site/address information
+                   '  of the new master site
+
+                   ' Get list of aliases to merge
+                   ' Get the site_view data for the master record
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2demand_hdr")
+  If lstObject.Count > 0 Then
+     role_ret.Clear
+     role_ret.SimpleQuery 0, "site_view"
+     role_ret.AppendFilter 0, "site_id", cbEqual, recMaster.GetField("site_id")
+     role_ret.RetrieveRecords
+     Set role_list = role_ret.GetRecordList(0)
+     Set role_rec = role_list.ItemByIndex(0)
+
+     If sMetrics.bVerbose Or lstObject.Count > 0 Then
+       MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " demand hdr to be processed."
+     End If
+     For j = 0 To lstObject.Count - 1
+       Set recObject = lstObject.ItemByIndex(j)
+       strVerb = ".... " & Iif(sMetrics.bMerge, "Reassigning", "To reassign")
+       MergeLog strVerb + " demand hdr " + Trim$(Str$(recObject.GetField("objid")))
+       If sMetrics.bMerge Then
+         bulkSav.RelateRecords recMaster, recObject, "site2demand_hdr"
+         recObject.SetField "ship_address", role_rec.GetField("address")
+         recObject.SetField "ship_address2", role_rec.GetField("address_2")
+         recObject.SetField "ship_city", role_rec.GetField("city")
+         recObject.SetField "ship_country", role_rec.GetField("country_name")
+         recObject.SetField "ship_state", role_rec.GetField("state")
+         recObject.SetField "ship_zip", role_rec.GetField("zipcode")
+         recObject.SetField "site_name", role_rec.GetField("site_name")
+         recObject.SetField "ship_site_id", role_rec.GetField("site_id")
+         bulkSav.UpdateRecord recObject
+       End If
+       sMetrics.iDemandHdr = sMetrics.iDemandHdr + 1
+     Next j                                       
+  End If
+
+  ' Uncomment the next section only if you are using Attachments Anywhere functionality
+'  Set lstObject = bulkRet.GetRecordList(offset)
+'  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+'    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " Attachment Anywhere attachments to be reassigned."
+'  End If
+'  For j = 0 To lstObject.Count - 1
+    '
+    ' Process each attachment
+    '
+'    Set recObject = lstObject.ItemByIndex(j)
+'    strVerb = Iif(sMetrics.bMerge, ".... Reassigning", ".... To reassign")
+'    MergeLog strVerb + " attachment " + Trim$(Str$(recObject.GetField("objid")))
+    
+'    recObject.SetField "x_table_objid", recMaster.GetField("objid")
+'    bulkSav.UpdateRecord recObject
+'    sMetrics.iAttach = sMetrics.iAttach + 1
+'  Next j
+ 
+  ' Uncomment the next section only if you are using Flashes Anywhere functionality.
+  '  If you are using this function, but NOT Attachments Anywhere, please change the "offset + 1"
+  '  to "offset"
+'  Set lstObject = bulkRet.GetRecordList(offset + 1)
+'  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+'    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " Flashes Anywhere flashes to be reassigned."
+'  End If
+'  For j = 0 To lstObject.Count - 1
+    '
+    ' Process each flash
+    '
+'    Set recObject = lstObject.ItemByIndex(j)
+'    strVerb = Iif(sMetrics.bMerge, ".... Reassigning", ".... To reassign")
+'    MergeLog strVerb + " flash_to_other " + Trim$(Str$(recObject.GetField("objid")))
+    
+'    recObject.SetField "obj_id", recMaster.GetField("objid")
+'    bulkSav.UpdateRecord recObject
+'    sMetrics.iAlert = sMetrics.iAlert + 1
+'  Next j
+
+  If sMetrics.iSchemaRev >= 43 Then
+    '
+    ' Clarify schema 43+ (Clfy 4.5+)
+    '
+    ObjectReassignAlert sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2alert", "alert", "Reassigning", "To reassign", sMetrics.iAlert
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2e_addr", "e address", "Reassigning", "To reassign", sMetrics.iEAddr
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2per_site_role", "person role", "Reassigning", "To reassign", sMetrics.iPerRole
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2c_site_role", "contract item role", "Reassigning", "To reassign", sMetrics.iContItemRole
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2sit_prt_role", "site part role", "Reassigning", "To reassign", sMetrics.iSitePartRole
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2site_addr_role", "address role", "Reassigning", "To reassign", sMetrics.iAddrRole
+
+    '
+    ' Process bus_site_roles
+    '
+    Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2bus_site_role")
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " bus_site_roles that may be moved."
+    End If
+    For j = 0 To lstObject.Count - 1
+      Set recObject = lstObject.ItemByIndex(j)
+      Set role_list = bulkRet.GetRelatedRecordList(recObject, "bus_site_role2bus_org")
+      If role_list.Count = 0 Then
+         Goto next_role_rec
+      End If
+         
+      Set role_rec = role_list.ItemByIndex(0)
+
+      Set role_rec = role_list.ItemByIndex(0)
+      If UCase$(Left$(recObject.GetField("role_name"),5)) = "OWNER" Then
+         Goto bus_site_roles_is_duplicate
+      End If
+
+      role_ret.Clear
+      role_ret.SetRoot recMaster
+      role_ret.TraverseFromRoot 0, "site2bus_site_role"
+      role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+      role_ret.AppendFilter 0, "focus_type", cbEqual, recObject.GetField("focus_type")
+      role_ret.TraverseFromParent 1, "bus_site_role2bus_org", 0
+      role_ret.AppendFilter 1, "objid", cbEqual, role_rec.GetField("objid")
+      role_ret.RetrieveRecords
+
+      Set role_list = role_ret.GetRecordList(1)
+      If role_list.Count = 0 Then
+         strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+         MergeLog strVerb + " bus_site_role " + Trim$(Str$(recObject.GetField("objid")))
+         bulkSav.RelateRecords recMaster, recObject, "site2bus_site_role"
+         sMetrics.iBusOrg = sMetrics.iBusOrg + 1
+      Else
+bus_site_roles_is_duplicate:
+         strVerb = Iif(sMetrics.bMerge, ".... Is duplicate", ".... Is duplicate")
+         MergeLog strVerb + " bus_site_role " + Trim$(Str$(recObject.GetField("objid")))
+      End If
+next_role_rec:
+    Next j  
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+      MergeLog ".. " + Trim$(Str$(sMetrics.iBusOrg)) + " bus_site_roles" + strVerb + "."
+    End If
+
+    If sMetrics.iSchemaRev = 43 Then 
+       '
+       ' Clarify schema 43+ (Clfy 4.5, 4.6)
+       '
+       ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2ch_site_role", "contract role", "Reassigning", "To reassign", sMetrics.iContractRole
+       ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2ctrsitcon_role", "contract-contact role", "Reassigning", "To reassign", sMetrics.iCtrSitRole
+       ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2contr_inst", "contract line item", "Reassigning", "To reassign", sMetrics.iContrInst
+    Else If sMetrics.iSchemaRev >= 44 Then
+            '
+            ' Clarify schema 44+ (Clfy 5.x+)
+            '
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bill_site2contr_schedule", "bill contract item schedule", "Reassigning", "To reassign", sMetrics.iBillItem
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2quick_quote", "quick quote", "Reassigning", "To reassign", sMetrics.iQuickQuote
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "quoted_at2contr_itm", "quoted at contract line item", "Reassigning", "To reassign", sMetrics.iAtItem
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "covered_by2contr_itm", "covered by contract line item", "Reassigning", "To reassign", sMetrics.iByItem
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2sit_csc_role", "site csc role", "Reassigning", "To reassign", sMetrics.iCSCRole
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "ship_site2contr_schedule", "ship contract item schedule", "Reassigning", "To reassign", sMetrics.iShipItem
+            ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "partner2exchange", "partner exchange", "Reassigning", "To reassign", sMetrics.iPartnerExchange
+         End If
+    End If
+  End If  
+
+  If sMetrics.iSchemaRev >= 45 Then
+    '
+    ' Clarify schema 45+ (Clfy 6.x+)
+    '
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2scr_run", "script run", "Reassigning", "To reassign", sMetrics.iSiteScript
+  End If
+
+  '
+  ' Process site_parts for this site. Must set field as well as relation
+  '  Also, if this site_part is related to a deinstall_rip (it's deinstalled), and the
+  '   master also has a deinstall bin, move this site_part to that deinstall bin
+  '
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2all_site_part")
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " site parts to be reassigned."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+    MergeLog strVerb + " site part " + Trim$(Str$(recObject.GetField("objid")))
+    bulkSav.UpdateRecord recObject
+    recObject.SetField "dir_site_objid", recMaster.GetField("objid")
+    bulkSav.RelateRecords recMaster, recObject, "site2all_site_part"
+    sMetrics.iSitePart = sMetrics.iSitePart + 1
+    
+    Set bin_list = bulkRet.GetRelatedRecordList(recObject, "site_part2productbin")
+    If bin_list.Count > 0 And is_mst_deinst Then
+       Set bin_rec = bin_list.ItemByIndex(0)
+       recObject.SetField "bin_objid", mst_deinst.GetField("objid")
+       bulkSav.RelateRecords recObject, mst_deinst, "site_part2productbin"
+    End If
+  Next j
+
+  '
+  ' Process top-level site_parts for this site. Must set field as well as relation
+  '
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "customer2site_part")
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " top-level site parts to be reassigned."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+    MergeLog strVerb + " top-level site part " + Trim$(Str$(recObject.GetField("objid")))
+    bulkSav.UpdateRecord recObject
+    recObject.SetField "site_objid", recMaster.GetField("objid")
+    bulkSav.RelateRecords recMaster, recObject, "customer2site_part"
+    sMetrics.iTopSitePart = sMetrics.iTopSitePart + 1
+  Next j  
+
+  '
+  ' Process cases for this alias
+  ' 
+  ' Change case reporting site to master site  
+  '
+  ' Get case list for this alias
+  '
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "cust_loc2case")
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " cases to be reassigned."
+  End If
+  For j = 0 To lstObject.Count - 1      
+    '
+    ' Process case from list
+    '
+    Set recObject = lstObject.ItemByIndex(j)
+    strVerb = Iif(sMetrics.bMerge, ".... Reassigning", ".... To reassign")
+    MergeLog strVerb + " case " + Trim$(Str$(recObject.GetField("objid"))) + " " + _
+                 "(id=" + recObject.GetField("id_number") + ")"
+    strVerb = Iif(sMetrics.bMerge, "...... Writing", "...... To write")             
+    MergeLog strVerb + " 'Chng Site' act_entry for case."
+    
+    If sMetrics.bMerge Then   
+      '
+      ' Create Chng Site act entry.
+      '        
+      recActEntry.RecordType = "act_entry"
+      recActEntry.SetField "act_code", 9800
+      recActEntry.SetField "entry_time", App.CurrentDate
+      recActEntry.SetField "addnl_info", _
+        "Site changed from " + _
+        recAlias.GetField("site_id") + "(" + _
+        recAlias.GetField("name") + ") " + _
+        "to " + _
+        recMaster.GetField("site_id") + "(" + _
+        recMaster.GetField("name") + ")."
+      bulkSav.InsertRecord recActEntry
+      bulkSav.RelateRecords recActEntry, recActCode, "entry_name2gbst_elm"
+      bulkSav.RelateRecords recActEntry, recObject, "act_entry2case"
+      bulkSav.RelateRecordsToID recActEntry, "user", marker, "act_entry2user"
+    End If
+      
+    '
+    ' Relate case to master site
+    '
+    bulkSav.RelateRecords recMaster, recObject, "cust_loc2case"        
+    sMetrics.iCase = sMetrics.iCase + 1
+  Next j
+ 
+  '
+  ' Process contact roles
+  '
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2contact_role")
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " contact roles that may be moved or deleted."
+  End If
+  For j = 0 To lstObject.Count - 1
+    Set recObject = lstObject.ItemByIndex(j)
+    Set role_list = bulkRet.GetRelatedRecordList(recObject, "contact_role2contact")
+
+										  ' if there are no related contacts
+										  ' Customer had bad data - trap it
+	  If role_list.Count = 0 Then
+		  MergeLog "ERROR - There is no contact for contact_role record with Objid " _
+			  + CStr(recObject.GetField("objid")) + _
+			  ". This MUST be repaired before sites can be merged."
+			  SMetrics.BMerge = False
+			  Goto next_contact_role
+	  End If
+
+    Set role_rec = role_list.ItemByIndex(0)
+
+    ' Search for a contact role for this contact with the same role name at the master site
+    role_ret.Clear
+    role_ret.SimpleQuery  0, "rol_contct"
+    role_ret.AppendFilter 0, "con_objid", cbEqual, role_rec.GetField("objid")
+    role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+    role_ret.AppendFilter 0, "loc_objid", cbEqual, recMaster.GetField("objid")
+    role_ret.RetrieveRecords
+
+    Set role_list = role_ret.GetRecordList(0)
+    If role_list.Count = 0 Then
+       strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+       MergeLog strVerb + " contact role " + Trim$(Str$(recObject.GetField("objid")))
+       bulkSav.RelateRecords recMaster, recObject, "site2contact_role"
+       sMetrics.iContactRole = sMetrics.iContactRole + 1
+    Else
+       Set recRole = New Record
+       Dim recRoleView as Record
+       Set recRoleView = role_list.ItemByIndex(0)
+       recRoleView.GetObject "contact_role",recRole
+
+       If recObject.GetField("primary_site") = 1 Then
+          ' If we're here, 
+          ' This role_name exists at the master site and the alias site
+          ' AND the role for the alias site is the primary role.
+          ' So, make the master role the primary.
+          ' We'll still delete the role that pointed to the alias 
+          '
+          recRole.SetField "primary_site", 1
+			    strVerb = Iif(sMetrics.bMerge, ".... Updated (to primary role)", ".... To update (to primary role)")
+			    MergeLog strVerb + " contact role " + Trim$(Str$(recRole.GetField("objid")))
+          bulkSav.UpdateRecord recRole
+       End If
+
+			 ' Delete the duplicate role
+			 strVerb = Iif(sMetrics.bMerge, ".... Deleted", ".... To delete")
+			 MergeLog strVerb + " contact role " + Trim$(Str$(recObject.GetField("objid")))
+			 bulkSav.DeleteRecord recObject
+ 
+    End If
+next_contact_role:
+  Next j  
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+    MergeLog ".. " + Trim$(Str$(sMetrics.iContactRole)) + " contact roles" + strVerb + "."
+  End If
+      
+  '
+  ' Process inv_roles
+  '
+  Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2inv_role")
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " inv_roles that may be moved."
+  End If
+  
+  										' go throught the list of inv_roles
+  For j = 0 To lstObject.Count - 1
+  
+  										' get the list of related locatn - 
+  										' list must contain 1 locatn
+    Set recObject = lstObject.ItemByIndex(j)
+    Set role_list = bulkRet.GetRelatedRecordList(recObject, "inv_role2inv_locatn")
+
+										' if there are no related locatns
+										' Customer had bad data - trap it
+	If role_list.Count = 0 Then
+		MergeLog "ERROR - There is no inv_locatn for inv_role record with Objid " _
+			+ CStr(recObject.GetField("objid")) + _
+			". This MUST be repaired before sites can be merged."
+			SMetrics.BMerge = False
+			Goto next_inv_role
+	End If
+
+                                        ' Get the role record
+                                        ' If it is a default record, we
+                                        '  don't want to move it. Would cause
+                                        '  a duplicate index issue.
+    Set role_rec = role_list.ItemByIndex(0)
+    If UCase$(Left$(recObject.GetField("role_name"),7)) = "DEFAULT" Then
+       Goto is_duplicate
+    End If
+
+    role_ret.Clear
+    role_ret.SetRoot recMaster
+    role_ret.TraverseFromRoot 0, "site2inv_role"
+    role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+    role_ret.AppendFilter 0, "focus_type", cbEqual, recObject.GetField("focus_type")
+    role_ret.TraverseFromParent 1, "inv_role2inv_locatn", 0
+    role_ret.AppendFilter 1, "objid", cbEqual, role_rec.GetField("objid")
+    role_ret.RetrieveRecords
+
+    Set role_list = role_ret.GetRecordList(1)
+    If role_list.Count = 0 Then
+       strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+       MergeLog strVerb + " inv_role " + Trim$(Str$(recObject.GetField("objid")))
+       bulkSav.RelateRecords recMaster, recObject, "site2inv_role"
+       sMetrics.iInvRole = sMetrics.iInvRole + 1
+    Else
+is_duplicate:
+       strVerb = Iif(sMetrics.bMerge, ".... Is duplicate", ".... Is duplicate")
+       MergeLog strVerb + " inv_role " + Trim$(Str$(recObject.GetField("objid")))
+    End If
+next_inv_role:
+  Next j  
+  If sMetrics.bVerbose Or lstObject.Count > 0 Then
+    strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+    MergeLog ".. " + Trim$(Str$(sMetrics.iInvRole)) + " inv_roles" + strVerb + "."
+  End If
+
+  If sMetrics.iSchemaRev >= 51 Then
+    '
+    ' Clarify schema 51+ (Clfy 7.x+)
+    '
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2part_num", "generic OEM parts", "Reassigning", "To reassign", sMetrics.iSitePartNum
+    
+    '
+    ' Process site exchange roles
+    '
+    Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2exc_sit_role")
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " site exchange roles that may be moved."
+    End If
+    For j = 0 To lstObject.Count - 1
+      Set recObject = lstObject.ItemByIndex(j)
+      Set role_list = bulkRet.GetRelatedRecordList(recObject, "exc_sit_role2exchange")
+      Set role_rec = role_list.ItemByIndex(0)
+  
+      role_ret.Clear
+      role_ret.SetRoot recMaster
+      role_ret.TraverseFromRoot 0, "site2exc_sit_role"
+      role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+      role_ret.AppendFilter 0, "focus_type", cbEqual, recObject.GetField("focus_type")
+      role_ret.TraverseFromParent 1, "exc_sit_role2exchange", 0
+      role_ret.AppendFilter 1, "objid", cbEqual, role_rec.GetField("objid")
+      role_ret.RetrieveRecords
+  
+      Set role_list = role_ret.GetRecordList(1)
+      If role_list.Count = 0 Then
+         strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+         MergeLog strVerb + " exchange site role " + Trim$(Str$(recObject.GetField("objid")))
+         bulkSav.RelateRecords recMaster, recObject, "site2exc_sit_role"
+         sMetrics.iExcSiteRole = sMetrics.iExcSiteRole + 1
+      Else
+         strVerb = Iif(sMetrics.bMerge, ".... Is duplicate", ".... Is duplicate")
+         MergeLog strVerb + " exchange site role " + Trim$(Str$(recObject.GetField("objid")))
+      End If
+    Next j  
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+      MergeLog ".. " + Trim$(Str$(sMetrics.iExcSiteRole)) + " exchange site roles" + strVerb + "."
+    End If
+
+    '
+    ' Process site vendor part roles
+    '
+    Set lstObject = bulkRet.GetRelatedRecordList(recAlias, "site2vendor_part")
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      MergeLog ".. " + Trim$(Str$(lstObject.Count)) + " site vendor part roles that may be moved."
+    End If
+    For j = 0 To lstObject.Count - 1
+      Set recObject = lstObject.ItemByIndex(j)
+      Set role_list = bulkRet.GetRelatedRecordList(recObject, "vendor_part2mod_level")
+      Set role_rec = role_list.ItemByIndex(0)
+  
+      role_ret.Clear
+      role_ret.SetRoot recMaster
+      role_ret.TraverseFromRoot 0, "site2vendor_part"
+      role_ret.AppendFilter 0, "role_name", cbEqual, recObject.GetField("role_name")
+      role_ret.TraverseFromParent 1, "vendor_part2mod_level", 0
+      role_ret.AppendFilter 1, "objid", cbEqual, role_rec.GetField("objid")
+      role_ret.RetrieveRecords
+  
+      Set role_list = role_ret.GetRecordList(1)
+      If role_list.Count = 0 Then
+         strVerb = Iif(sMetrics.bMerge, ".... Moving", ".... To move")
+         MergeLog strVerb + " site vendor part roles " + Trim$(Str$(recObject.GetField("objid")))
+         bulkSav.RelateRecords recMaster, recObject, "site2vendor_part"
+         sMetrics.iSiteVendorPart = sMetrics.iSiteVendorPart + 1
+      Else
+         strVerb = Iif(sMetrics.bMerge, ".... Is duplicate", ".... Is duplicate")
+         MergeLog strVerb + " site vendor part roles " + Trim$(Str$(recObject.GetField("objid")))
+      End If
+    Next j  
+    If sMetrics.bVerbose Or lstObject.Count > 0 Then
+      strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+      MergeLog ".. " + Trim$(Str$(sMetrics.iSiteVendorPart)) + " site vendor part roles" + strVerb + "."
+    End If
+  End If
+
+  If sMetrics.iSchemaRev >= 52 Then
+    '
+    ' Process relations for schema rev 52+ (Clfy 8.x+)
+    '
+    
+    ' Process the participant records
+    Set t_list = bulkRet.GetRecordList(47)
+    If t_list.Count > 0 Then
+       For i = 0 To t_list.Count - 1
+         Set role_rec = t_list.ItemByIndex(i)
+         role_rec.SetField "focus_lowid", recMaster.GetField("objid")
+         bulkSav.UpdateRecord role_rec
+         sMetrics.iParticipant = sMetrics.iParticipant + 1
+       Next i
+       strVerb = Iif(sMetrics.bMerge, " moved", " to move")
+       MergeLog ".. " + Trim$(Str$(sMetrics.iParticipant)) + " participant record" + strVerb + "."
+    End If
+  End If
+
+  If sMetrics.iSchemaRev >= 54 Then
+    '
+    ' Clarify schema 54+ (Clfy 9.x+)
+    '
+    ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2shp_sit_role", " ship part role", "Reassigning", "To reassign", sMetrics.iShpSitRole
+  End If
+
+  If sMetrics.iSchemaRev >= 58 Then 
+     '
+     ' Clarify schema 58+ (Clfy 11.5)
+     '
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "primary_site2bus_org", "primary site bus org", "Reassigning", "To reassign", sMetrics.iPrimaryBusOrg
+  End If
+    
+  If sMetrics.iSchemaRev >= 59 Then 
+     '
+     ' Clarify schema 59+ (Clfy 12.0)
+     '
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2order_action", "site order action", "Reassigning", "To reassign", sMetrics.iPrimaryBusOrg
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2order_shipping", "site order shipping", "Reassigning", "To reassign", sMetrics.iPrimaryBusOrg
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "site2site_ba_role", "site BA role", "Reassigning", "To reassign", sMetrics.iPrimaryBusOrg
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "primary_site2blg_argmnt", "site billing argument", "Reassigning", "To reassign", sMetrics.iPrimaryBusOrg
+  End If
+
+  If sMetrics.bMerge Then
+    MergeLog ".. Commiting changes."
+    bulkSav.Save
+    MergeLog ".. Done."
+  End If  
+End Sub

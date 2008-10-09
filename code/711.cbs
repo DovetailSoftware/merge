@@ -1,0 +1,69 @@
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' $Header: /fchoice/product/merge/711.cbs 6     12/12/03 2:45p Marty $
+'                                                                           
+' Product        :  Contact Merge
+'                                                                           
+' Name           :  711.cbs - Select Contact form module
+'                                                                           
+' Description    :  Allows a user to display Contact Alias form from the 
+'                   Clarify Select Contact form.
+'
+'                   Form Event Handlers:              
+'                                                                           
+'                   form_load() - form has been loaded
+'                   cmdAliases_Click() - Aliases button has been selected
+'
+'                   Internal Routines:
+'                   
+'                   none
+'                                                                           
+' Author          : First Choice Software, Inc.                             
+'                   8900 Business Park Drive                      
+'                   Austin, TX  78759                                       
+'                   (512) 418-2905                                          
+'                                                                           
+' Platforms       : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  1997 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+option explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' form_load()
+' * perform default action (required by CB)
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub form_load()
+  me.doDefault
+end sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' cmdAliases_Click()
+' * fetch selected rol_contct
+' * fetch rol_contact.objid 
+' * post Contact Alias form
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+sub cmdAliases_click()
+  dim frm as new form
+  dim lstRolContct as List
+  dim recRolContct as new Record
+  dim objidContact as Long
+  
+  set lstRolContct = FIELD_ARRAY.selectedList()
+  if lstRolContct.count > 0 then
+    set recRolContct = lstRolContct.itemByIndex(0)
+    objidContact = recRolContct.getField("con_objid")  
+  else
+    objidContact = 0
+  end if
+
+  frm.show 1920, cbFrontIfUp
+  frm.notify 20000, str$(objidContact) + "|" + str$(INCLUDE_INACT_CHK.value)
+  me.dodefault
+end sub

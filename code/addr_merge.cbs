@@ -1,0 +1,342 @@
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'                                                                          
+' Product        :  Contact/Site Merge
+'                                                                           
+' Name           :  addr_merge.cbs                                           
+'                                                                           
+' Description    :  Performs 'merge' process. Callable by GUI or cbbatch.       
+'                                                                           
+' Author         : First Choice Software, Inc.                             
+'                  8900 Business Park Drive
+'                  Austin, TX 78759                                       
+'                  (512) 418-2905                                          
+'                                                                           
+' Platforms      : This version supports Clarify 4.5 and later             
+'                                                                           
+' Copyright (C)  2003 First Choice Software, Inc.                           
+' All Rights Reserved                                                       
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Option Explicit
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module data types
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Type stMetrics
+  bMerge as Boolean
+  iSchemaRev as Integer
+  bVerbose as Boolean
+  iAlias as Long
+  iAlert as Long
+  iCommitLog as Long
+  iWebUser as Long
+  iPhoneLog as Long
+  iCtrSitRole as Long
+  iDemandHdr as Long
+  iCase as Long
+  iContactRole as Long
+  iBusOrgRole as Long
+  iContractRole as Long
+  iAltContact as Long
+  iUser as Long
+  iContract as Long
+  iSitePart as Long
+  iPrimaryContract as Long
+  iActEntry as Long
+  iEmailLog as Long
+  iCampaign as Long
+  iPrimaryTask as Long
+  iQuickQuote as Long
+  iOpportunityRole as Long
+  iMailListRole as Long
+  iPartVend As Long
+  iPhone As Long
+  iEAddr As Long
+  iCaseReseller As Long
+  iAttach As Long
+  iInvRole As Long
+  iShipPart As Long
+  iParentSite As Long
+  iPerRole As Long
+  iContItemRole As Long
+  iTrans As Long
+  iProdBin As Long
+  iSitePartRole As Long
+  iTopProdBin As Long
+  iAddrRole As Long
+  iBillDemandHdr As Long
+  iSuppOff As Long
+  iEmployee As Long
+  iBusOrg As Long
+  iContrInst As Long
+  iTopSitePart As Long
+  iInvLocatn As Long
+  iBillItem As Long
+  iAtItem As Long
+  iByItem As Long
+  iCSCRole As Long
+  iShipItem As Long
+  iPartnerExchange As Long
+  iACDCall As Long
+  iSiteScript As Long
+  iContScript As Long
+  iInteract As Long
+  iLscRole As Long
+  iExcRole As Long
+  iExcSiteRole As Long
+  iSitePartNum As Long
+  iSiteVendorPart As Long
+  iContAttach As Long
+  iShpSitRole As Long
+  iCeAddr As Long
+  irRqst As Long
+  irRqst2 As Long
+  iConPymRole As Long
+  iParentConRole As Long
+  iChildConRole As Long
+  iContPref As Long
+  iContUserTouch As Long
+  iParticipant as Long
+  iSiteAddrRole As Long
+  iBillSite As Long
+  iPrimSite As Long
+  iShipSite As Long
+  iPerAddrRole As Long
+  iAddrShipSched As Long
+  iAddrBillSched As Long
+  iAddrItm As Long
+  iAddrCase As Long
+  iAddrBusPrim As Long
+  iAddrBusAddr As Long
+  iAddrExtn As Long
+  iAddrBaRole As Long
+  iPartRev As Long
+  iPrimaryBusOrg As Long
+  iSiteOrderAction As Long
+  iSiteOrderShipping As Long
+  iSiteBARole As Long
+  iPrimaryBlgArg As Long
+  iConFinAccnt As Long
+  iConBlgArg As Long
+  iConSPRole As Long
+  iConPCRole As Long
+  iConPPBRole As Long
+  iConOrderAction As Long
+  iConFRAgrRole As Long
+  iConInteraction As Long
+  iConProcInst As Long
+End Type
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' Module forward declarations
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Declare Sub AddrMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+Declare Sub MergeLog(strLog As String)
+Declare Sub ObjectReassign(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+Declare Sub ObjectReassignAlert(sMetrics As stMetrics, bulkRet As BulkRetrieve, bulkSav As BulkSave, _
+                    recMaster As Record, recAlias As Record, strRel As String, _
+                    strActionDesc As String, strVerbMerge As String, strVerbPreview As String, _
+                    iMetric As Long)
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' AddrFooterPrint() - Print report footer
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub AddrFooterPrint(sMetrics As stMetrics)
+  Dim strMsg As String
+
+  MergeLog "------------------------------------------------------"
+  MergeLog "Metrics:"
+  MergeLog ""
+
+  strMsg = Iif(sMetrics.bMerge, " have been processed.", " to be processed.")
+  MergeLog Trim$(str$(sMetrics.iPrimSite)) + " site primary addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iBillSite)) + " site bill-to addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iShipSite)) + " site ship-to addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAddrCase)) + " case addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iSiteAddrRole)) + " site address roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAddrBusPrim)) + " bus org primary addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAddrBusAddr)) + " bus org address roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iPerAddrRole)) + " person address roles" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAddrShipSched)) + " contract schedule ship-to addresses" + strMsg
+  MergeLog Trim$(str$(sMetrics.iAddrBillSched)) + " contract schedule bill-to addresses" + strMsg
+
+  If sMetrics.iSchemaRev >= 52 Then
+    ' Clarify 8.x+
+    MergeLog Trim$(str$(sMetrics.iAddrItm)) + " Contract line-item addresses" + strMsg
+  End If
+
+  If sMetrics.iSchemaRev >= 55 Then
+     ' Clarify 10.1+
+     MergeLog Trim$(str$(sMetrics.iAddrExtn)) + " address extensions" + strMsg
+  End If
+
+  If sMetrics.iSchemaRev >= 56 Then
+     ' Clarify 11.x+
+     MergeLog Trim$(str$(sMetrics.iAddrBaRole)) + " address billing role" + strMsg
+  End If
+  
+  MergeLog "------------------------------------------------------"   
+  MergeLog "END " + Trim$(App.CurrentDate)
+  MergeLog "------------------------------------------------------"
+End Sub
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' AddrMergeAlias() - Run merge report or perform merge
+'
+' Copyright (C) 2003. First Choice Software. All Rights Reserved.
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Sub AddrMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetrics)
+  Dim bulkRet   As New BulkRetrieve
+  Dim bulkSav   As BulkSave
+  Dim lstObject As List
+  Dim recObject As Record
+  Dim lstOther  As List
+  Dim recOther  As Record
+  Dim strVerb   As String
+  Dim t_list    As List
+  Dim gbst_rec  As Record
+  Dim do_act    As Boolean
+  Dim n_act_rec As Record
+ 
+  Dim i         As Long
+  Dim j         As Long    
+  
+  Dim recActEntry As new Record
+  Dim lstActCode  As List
+  Dim recActCode  As Record
+
+  Dim role_ret    As New BulkRetrieve
+  Dim role_list   As List
+  Dim role_rec    As Record
+  Dim master_role_rec As Record
+  Dim marker      As Long
+
+  bulkRet.SimpleQuery 0, "address"
+  bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
+  bulkRet.SimpleQuery 1, "address"
+  bulkRet.AppendFilter 1, "objid", cbEqual, recMaster.GetField("objid")
+
+  bulkRet.TraverseFromParent  2, "primary_addr2site", 0          'OTM
+  bulkRet.TraverseFromParent  3, "ship_addr2site", 0             'OTM
+  bulkRet.TraverseFromParent  4, "bill_addr2site", 0             'OTM
+  bulkRet.TraverseFromParent  5, "address2case", 0               'OTM
+  bulkRet.TraverseFromParent  6, "addr2site_addr_role", 0        'OTM
+  bulkRet.TraverseFromParent  7, "bus_primary2bus_org", 0        'OTM
+  bulkRet.TraverseFromParent  8, "address2bus_addr_role", 0      'OTM
+  bulkRet.TraverseFromParent  9, "address2per_addr_role", 0      'OTM
+  bulkRet.TraverseFromParent  10, "ship_addr2contr_schedule", 0  'OTM
+  bulkRet.TraverseFromParent  11, "bill_addr2contr_schedule", 0  'OTM
+
+  If sMetrics.iSchemaRev >= 52 Then
+     '
+     ' Clarify schema 52+ (Clfy 8+)
+     '
+     bulkRet.TraverseFromParent 12, "bill_addr2contr_itm", 0     'OTM
+  End If
+
+  If sMetrics.iSchemaRev >= 55 Then
+     '
+     ' Clarify schema 55+ (Clfy 10.1+)
+     '
+     bulkRet.TraverseFromParent 13, "address2address_extn", 0    'OTOF
+  End If
+
+  If sMetrics.iSchemaRev >= 56 Then
+     '
+     ' Clarify schema 56+ (Clfy 11.0+)
+     '
+     bulkRet.TraverseFromParent 14, "address2addr_ba_role", 0     'OTM
+  End If
+  bulkRet.RetrieveRecords
+
+  '
+  ' New bulk save for each part_num alias
+  '
+  Set bulkSav = New BulkSave
+  
+  '
+  ' Process alias
+  '
+  MergeLog ""
+  MergeLog "Address alias " + Trim$(Str$(recAlias.GetField("objid"))) + " " + _
+                 "(" + recAlias.GetField("address") + " - " + _
+                 recAlias.GetField("city") + ", " & recAlias.GetField("state") & ")"
+
+  ' Get the marker from the alias
+  marker = recAlias.GetField("x_marked_by")
+  If marker = 0 Then
+     marker = App.UserObjid
+  End If
+
+  '
+  ' Log master for this alias
+  '               
+  MergeLog ".. Master address " + Trim$(Str$(recMaster.getField("objid"))) + " " + _
+                 "(" + recMaster.GetField("address") + " - " + _
+                 recMaster.GetField("city") + ", " & recMaster.GetField("state") & ")"
+  If sMetrics.bMerge Then
+    bulksav.UpdateRecord recMaster
+    bulksav.UnRelateRecords recAlias, recMaster, "alias2address"
+    recMaster.SetField "x_objid_master", 0
+  End If
+
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "primary_addr2site", "site primary address", "Reassigning", "To reassign", sMetrics.iPrimSite
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "ship_addr2site", "site ship-to address", "Reassigning", "To reassign", sMetrics.iShipSite
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bill_addr2site", "site bill-to address", "Reassigning", "To reassign", sMetrics.iBillSite
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "address2case", "case address", "Reassigning", "To reassign", sMetrics.iAddrCase
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "addr2site_addr_role", "site address role", "Reassigning", "To reassign", sMetrics.iSiteAddrRole
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bus_primary2bus_org", "bus org primary address", "Reassigning", "To reassign", sMetrics.iAddrBusPrim
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "address2bus_addr_role", "bus org address role", "Reassigning", "To reassign", sMetrics.iAddrBusAddr
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "address2per_addr_role", "person address role", "Reassigning", "To reassign", sMetrics.iPerAddrRole
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "ship_addr2contr_schedule", "contract schedule ship-to-address", "Reassigning", "To reassign", sMetrics.iAddrShipSched
+  ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bill_addr2contr_schedule", "contract schedule bill-to address", "Reassigning", "To reassign", sMetrics.iAddrBillSched
+
+  If sMetrics.iSchemaRev >= 52 Then
+     '
+     ' Clarify schema 52+ (Clfy 8+)
+     '
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "bill_addr2contr_itm", "contract item address", "Reassigning", "To reassign", sMetrics.iAddrItm
+  End If
+  
+  If sMetrics.iSchemaRev >= 55 Then
+     '
+     ' Clarify schema 55+ (Clfy 10.1+)
+     '
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "address2address_extn", "address extension", "Reassigning", "To reassign", sMetrics.iAddrExtn
+  End If
+
+  If sMetrics.iSchemaRev >= 56 Then
+     '
+     ' Clarify schema 56+ (Clfy 11.0+)
+     '
+     ObjectReassign sMetrics, bulkRet, bulkSav, recMaster, recAlias, "address2addr_ba_role", "address billing role", "Reassigning", "To reassign", sMetrics.iAddrBaRole
+  End If
+
+  '
+  ' Delete alias address
+  '
+  If sMetrics.bMerge Then
+    bulkSav.DeleteRecord recAlias
+  End If
+  sMetrics.iAlias = sMetrics.iAlias + 1
+
+  If sMetrics.bMerge Then
+    MergeLog ".. Commiting changes."
+    bulkSav.Save
+    MergeLog ".. Done."
+  End If  
+End Sub
+
