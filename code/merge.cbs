@@ -929,6 +929,8 @@ Sub ContactMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMet
   ' Global ones
   ' 43) Contact role's site (alias)
 
+  on error goto errHandler
+
                                         ' Get the config items needed and the gbst_elm
                                         '  record for the act_entry
   bulkRet.Clear
@@ -1849,7 +1851,17 @@ finish_role:
     MergeLog ".. Commiting changes."
     bulkSav.Save
     MergeLog ".. Done."
-  End If  
+  End If
+
+  exit sub
+
+errHandler:
+  If err.number > 0 then
+    debug.print "ERROR: " & err.number
+    debug.print "ERROR LINE: " & erl
+    debug.print "ERROR DESC: " & err.description
+  end if
+
 End Sub
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''

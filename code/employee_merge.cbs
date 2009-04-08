@@ -614,6 +614,8 @@ Sub EmployeeMergeAlias(recMaster As Record, recAlias As Record, sMetrics As empM
   Dim bin_rec     As Record
   Dim brLevel     As Integer
   
+  on error goto errHandler
+
                                         ' Get the config items needed and the gbst_elm
                                         '  record for the act_entry
   bulkRet.Clear
@@ -1058,9 +1060,17 @@ Sub EmployeeMergeAlias(recMaster As Record, recAlias As Record, sMetrics As empM
     bulkSav.Save
     MergeLog ".. Done."
   End If  
+
+  exit sub
+
+errHandler:
+  If err.number > 0 then
+    debug.print "ERROR: " & err.number
+    debug.print "ERROR LINE: " & erl
+    debug.print "ERROR DESC: " & err.description
+  end if
+
 End Sub
-
-
 
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''

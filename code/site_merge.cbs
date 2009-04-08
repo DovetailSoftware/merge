@@ -296,6 +296,8 @@ Sub SiteMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetric
   Dim bin_rec     As Record
   Dim recRole     As Record
 
+  on error goto errHandler
+
                                         ' Get the config items needed and the gbst_elm
                                         '  record for the act_entry
   bulkRet.Clear
@@ -1118,4 +1120,14 @@ next_inv_role:
     bulkSav.Save
     MergeLog ".. Done."
   End If  
+
+  exit sub
+
+errHandler:
+  If err.number > 0 then
+    debug.print "ERROR: " & err.number
+    debug.print "ERROR LINE: " & erl
+    debug.print "ERROR DESC: " & err.description
+  end if
+
 End Sub

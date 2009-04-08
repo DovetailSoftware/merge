@@ -433,6 +433,8 @@ Sub PartMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetric
   Dim recRev       As Record
   Dim recMastRev   As Record
   
+  on error goto errHandler
+
   strMasterPart = recMaster.GetField("part_number")
   
   bulkRet.SimpleQuery 0, "part_num"
@@ -520,4 +522,14 @@ Sub PartMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetric
     bulkSav.Save
     MergeLog ".. Done."
   End If  
+
+  exit sub
+
+errHandler:
+  If err.number > 0 then
+    debug.print "ERROR: " & err.number
+    debug.print "ERROR LINE: " & erl
+    debug.print "ERROR DESC: " & err.description
+  end if
+
 End Sub

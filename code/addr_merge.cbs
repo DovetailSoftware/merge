@@ -224,6 +224,8 @@ Sub AddrMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetric
   Dim master_role_rec As Record
   Dim marker      As Long
 
+  on error goto errHandler
+
   bulkRet.SimpleQuery 0, "address"
   bulkRet.AppendFilter 0, "objid", cbEqual, recAlias.GetField("objid")
   bulkRet.SimpleQuery 1, "address"
@@ -338,5 +340,15 @@ Sub AddrMergeAlias(recMaster As Record, recAlias As Record, sMetrics As stMetric
     bulkSav.Save
     MergeLog ".. Done."
   End If  
+
+  exit sub
+
+errHandler:
+  If err.number > 0 then
+    debug.print "ERROR: " & err.number
+    debug.print "ERROR LINE: " & erl
+    debug.print "ERROR DESC: " & err.description
+  end if
+
 End Sub
 
